@@ -29,6 +29,8 @@ import type {
     AgentAdministratif as PrismaAgentAdministratif,
     Role,
     UserSex,
+    Day,
+    TimePreference
 } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 import type { FieldErrors, SubmitHandler, UseFormHandleSubmit, UseFormRegister, UseFormSetValue } from "react-hook-form";

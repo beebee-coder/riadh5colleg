@@ -141,7 +141,7 @@ export interface ChatroomMessage {
   author: Partial<SafeUser>;
 }
 
-export type ChatMessage = {
+export interface ChatMessage { 
   id: string;
   userId: string;
   userName: string;
