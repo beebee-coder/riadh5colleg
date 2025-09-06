@@ -1,7 +1,7 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { TypedUseSelectorHook, useSelector } from 'react-redux';
+import { useAppSelector } from './hooks'; // Corrected import
 
 // APIs
 import { authApi } from './api/authApi';
@@ -94,5 +94,4 @@ setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export type AppStore = typeof store;
