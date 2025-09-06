@@ -1,7 +1,7 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { useAppSelector } from './hooks'; // Corrected import
+import { TypedUseSelectorHook, useSelector } from 'react-redux';
 
 // APIs
 import { authApi } from './api/authApi';
