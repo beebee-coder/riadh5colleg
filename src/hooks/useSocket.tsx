@@ -52,7 +52,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     const socket = socketRef.current;
 
     // --- DEBUG MIDDLEWARE ---
-    socket.onAny((event, ...args) => {
+    socket.onAny((event: string, ...args: any[]) => {
         console.log(`📡 [Socket Client] Received event: '${event}' with data:`, args);
     });
     
@@ -60,11 +60,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       console.log(`✅ [Socket Client] Connected with ID: ${socket.id}`);
     });
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', (reason: Socket.DisconnectReason) => {
       console.log(`🔌 [Socket Client] Disconnected: ${reason}`);
     });
     
-    socket.on('connect_error', (err) => {
+    socket.on('connect_error', (err: Error) => {
       console.error(`❌ [Socket Client] Connection error: ${err.message}`);
     });
 
@@ -81,7 +81,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         dispatch(studentSignaledPresence(studentId));
     });
 
-    socket.on('session:invite', (sessionData) => {
+    socket.on('session:invite', (sessionData: any) => {
       console.log(`📬 [SocketProvider] Received invite for session: ${sessionData.title}`);
       dispatch(addNotification({
         type: 'session_invite',
