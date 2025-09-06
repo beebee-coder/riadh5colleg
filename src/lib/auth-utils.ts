@@ -14,7 +14,7 @@ import { Role } from '@/types';
  */
 export async function getServerSession(): Promise<{ user: SafeUser } | null> {
   console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!sessionCookie) {
