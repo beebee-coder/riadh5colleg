@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from 'next/link';
 import { AppHeaderLogoutButton } from "./layout/AppHeaderLogoutButton";
-import { ThemeToggleButton } from "./layout/ThemeToggleButton";
+import { ThemeToggleButton } from "@/components/layout/ThemeToggleButton";
 import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import NotificationDropdown from './NotificationDropdown';
 import { useSelector } from "react-redux";
