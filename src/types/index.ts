@@ -26,6 +26,7 @@ import type {
     ChatroomSession as PrismaChatroomSession,
     ScheduleDraft as PrismaScheduleDraft,
     OptionalSubjectGroup as PrismaOptionalSubjectGroup,
+    AgentAdministratif as PrismaAgentAdministratif,
     Role,
     UserSex,
 } from "@prisma/client";
@@ -64,6 +65,7 @@ export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' |
 // --- BASE PRISMA TYPES (Re-exported for consistency) ---
 export type User = PrismaUser;
 export type Admin = PrismaAdmin;
+export type AgentAdministratif = PrismaAgentAdministratif;
 export type Teacher = PrismaTeacher;
 export type Student = PrismaStudent;
 export type OptionalSubject = PrismaSubject;
@@ -103,6 +105,7 @@ export type ScheduleDraft = Omit<PrismaScheduleDraft, 'createdAt' | 'updatedAt'>
 // --- SAFE CLIENT-SIDE TYPES (Passwords and sensitive data omitted) ---
 export type SafeUser = Omit<PrismaUser, 'password' | 'passwordResetToken' | 'passwordResetExpires' | 'twoFactorCode' | 'twoFactorCodeExpires'>;
 export type SafeAdmin = PrismaAdmin & { user: SafeUser };
+export type SafeAgentAdministratif = PrismaAgentAdministratif & { user: SafeUser };
 export type SafeTeacher = PrismaTeacher & { user: SafeUser };
 export type SafeStudent = PrismaStudent & { user: SafeUser };
 export type SafeParent = PrismaParent & { user: SafeUser };

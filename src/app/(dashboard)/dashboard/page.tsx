@@ -18,7 +18,7 @@ export default function DashboardRedirectPage() {
     if (!isAuthLoading) {
       if (user && user.role) {
         // We have a user with a role, redirect to their specific dashboard
-        const dashboardPath = `/${user.role.toLowerCase()}`;
+        const dashboardPath = `/${user.role.toLowerCase().replace(/_/g, '-')}`;
         router.replace(dashboardPath);
       } else {
         // No user found after loading, redirect to login

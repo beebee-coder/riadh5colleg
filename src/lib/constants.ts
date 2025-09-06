@@ -45,7 +45,7 @@ export const menuItems: Array<{
   {
     title: "MENU",
     items: [
-      { icon: Home, label: "Accueil", href: "/accueil", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
+      { icon: Home, label: "Accueil", href: "/accueil", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
       { icon: Calendar, label: "Planificateur", href: "/shuddle", visible: [Role.ADMIN], },
       { icon: BarChart, label: "Rapports", href: "/admin/reports", visible: [Role.ADMIN], },
       { icon: BookUser, label: "Enseignants", href: "/list/teachers", visible: [Role.ADMIN, Role.TEACHER], },
@@ -69,8 +69,8 @@ export const menuItems: Array<{
   {
     title: "AUTRE",
     items: [
-      { icon: UserCircle, label: "Profil", href: "/profile", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
-      { icon: Settings, label: "Paramètres", href: "/settings", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
+      { icon: UserCircle, label: "Profil", href: "/profile", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
+      { icon: Settings, label: "Paramètres", href: "/settings", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
     ],
   },
 ];
