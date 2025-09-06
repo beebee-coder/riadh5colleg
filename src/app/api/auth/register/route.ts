@@ -1,7 +1,7 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import * as Prisma from '@prisma/client';
 import { Role, type SafeUser } from '@/types';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[API/Register] Création d'un nouvel utilisateur dans la base de données pour ${email} avec le rôle ${role}...`);
-    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const newUser = await prisma.$transaction(async (tx: Prisma.Prisma.TransactionClient) => {
         const user = await tx.user.create({
             data: {
                 id: uid, // Use Firebase UID as the primary key
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("❌ [API/Register] Erreur lors de l'inscription:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
     }
     return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
