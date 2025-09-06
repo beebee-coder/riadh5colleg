@@ -145,7 +145,6 @@ export const {
   setSelectedClass,
   toggleStudentSelection,
   toggleTeacherSelection,
-  moveParticipant,
   removeStudentFromSession,
   addStudentToSession,
   updateStudentPresence,

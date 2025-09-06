@@ -1,7 +1,6 @@
 
 
 import { PayloadAction } from '@reduxjs/toolkit';
-import { arrayMove } from '@dnd-kit/sortable';
 import { SessionState, SessionParticipant, ClassRoom } from '../types';
 
 export const participantReducers = {
@@ -28,16 +27,6 @@ export const participantReducers = {
     state.selectedTeachers = state.selectedTeachers.includes(teacherId)
       ? state.selectedTeachers.filter(id => id !== teacherId)
       : [...state.selectedTeachers, teacherId];
-  },
-  moveParticipant: (state: SessionState, action: PayloadAction<{ fromIndex: number; toIndex: number }>) => {
-    if (state.activeSession) {
-      const { fromIndex, toIndex } = action.payload;
-      state.activeSession.participants = arrayMove(
-        state.activeSession.participants, 
-        fromIndex, 
-        toIndex
-      );
-    }
   },
   removeStudentFromSession: (state: SessionState, action: PayloadAction<string>) => {
     if (state.activeSession) {
