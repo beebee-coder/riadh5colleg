@@ -1,5 +1,4 @@
 // src/lib/constants.ts
-import { Role } from "@/types/index";
 import { 
   Home, Calendar, BarChart, BookUser, GraduationCap, Users, Book, School, 
   BookCopy, PencilLine, ClipboardList, BookCheck, ClipboardCheck, MessageSquare, 
@@ -39,38 +38,38 @@ export const menuItems: Array<{
     icon: React.ElementType;
     label: string;
     href: string;
-    visible: Role[]; 
+    visible: string[]; 
   }>;
 }> = [
   {
     title: "MENU",
     items: [
-      { icon: Home, label: "Accueil", href: "/accueil", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
-      { icon: Calendar, label: "Planificateur", href: "/shuddle", visible: [Role.ADMIN], },
-      { icon: BarChart, label: "Rapports", href: "/admin/reports", visible: [Role.ADMIN], },
-      { icon: BookUser, label: "Enseignants", href: "/list/teachers", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: GraduationCap, label: "Étudiants", href: "/list/students", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: Users, label: "Parents", href: "/list/parents", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: Book, label: "Matières", href: "/list/subjects", visible: [Role.ADMIN], },
-      { icon: School, label: "Classes", href: "/list/classes", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: BookCopy, label: "Cours", href: "/list/lessons", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: PencilLine, label: "Examens", href: "/list/exams", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
-      { icon: ClipboardList, label: "Devoirs", href: "/list/assignments", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
-      { icon: BookCheck, label: "Résultats", href: "/list/results", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
-      { icon: ClipboardCheck, label: "Présence", href: "/list/attendance", visible: [Role.ADMIN, Role.TEACHER], },
-      { icon: Calendar, label: "Événements", href: "/list/events", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
-      { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/dashboard", visible: [Role.TEACHER] },
-      { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/student", visible: [Role.STUDENT] },
-      { icon: MessageSquare, label: "Chatroom", href: "/admin/chatroom", visible: [Role.ADMIN] },
-      { icon: MessageSquare, label: "Messages", href: "/list/messages", visible: [Role.ADMIN, Role.TEACHER, Role.PARENT] },
-      { icon: Megaphone, label: "Annonces", href: "/list/announcements", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT], },
+      { icon: Home, label: "Accueil", href: "/accueil", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT", "AGENT_ADMINISTRATIF"], },
+      { icon: Calendar, label: "Planificateur", href: "/shuddle", visible: ["ADMIN"], },
+      { icon: BarChart, label: "Rapports", href: "/admin/reports", visible: ["ADMIN"], },
+      { icon: BookUser, label: "Enseignants", href: "/list/teachers", visible: ["ADMIN", "TEACHER"], },
+      { icon: GraduationCap, label: "Étudiants", href: "/list/students", visible: ["ADMIN", "TEACHER"], },
+      { icon: Users, label: "Parents", href: "/list/parents", visible: ["ADMIN", "TEACHER"], },
+      { icon: Book, label: "Matières", href: "/list/subjects", visible: ["ADMIN"], },
+      { icon: School, label: "Classes", href: "/list/classes", visible: ["ADMIN", "TEACHER"], },
+      { icon: BookCopy, label: "Cours", href: "/list/lessons", visible: ["ADMIN", "TEACHER"], },
+      { icon: PencilLine, label: "Examens", href: "/list/exams", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT"], },
+      { icon: ClipboardList, label: "Devoirs", href: "/list/assignments", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT"], },
+      { icon: BookCheck, label: "Résultats", href: "/list/results", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT"], },
+      { icon: ClipboardCheck, label: "Présence", href: "/list/attendance", visible: ["ADMIN", "TEACHER"], },
+      { icon: Calendar, label: "Événements", href: "/list/events", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT"], },
+      { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/dashboard", visible: ["TEACHER"] },
+      { icon: MessageSquare, label: "Chatroom", href: "/list/chatroom/student", visible: ["STUDENT"] },
+      { icon: MessageSquare, label: "Chatroom", href: "/admin/chatroom", visible: ["ADMIN"] },
+      { icon: MessageSquare, label: "Messages", href: "/list/messages", visible: ["ADMIN", "TEACHER", "PARENT"] },
+      { icon: Megaphone, label: "Annonces", href: "/list/announcements", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT"], },
     ],
   },
   {
     title: "AUTRE",
     items: [
-      { icon: UserCircle, label: "Profil", href: "/profile", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
-      { icon: Settings, label: "Paramètres", href: "/settings", visible: [Role.ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT, Role.AGENT_ADMINISTRATIF], },
+      { icon: UserCircle, label: "Profil", href: "/profile", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT", "AGENT_ADMINISTRATIF"], },
+      { icon: Settings, label: "Paramètres", href: "/settings", visible: ["ADMIN", "TEACHER", "STUDENT", "PARENT", "AGENT_ADMINISTRATIF"], },
     ],
   },
 ];
