@@ -1,5 +1,6 @@
-import SimplePageClient from "@/components/simple-page-client";
+// src/app/page.tsx
+import LandingPage from '@/components/landing/LandingPage';
 
-export default function Home() {
-  return <SimplePageClient />;
+export default function RootPage() {
+  return <LandingPage />;
 }
