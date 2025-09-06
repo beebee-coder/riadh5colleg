@@ -87,6 +87,16 @@ export const authApi = createApi({
             body: credentials,
         }),
         invalidatesTags: ['Session'],
+        async onQueryStarted(args, { dispatch, queryFulfilled }) {
+            try {
+                const { data } = await queryFulfilled;
+                if (data.user) {
+                    dispatch(setUser(data.user));
+                }
+            } catch (error) {
+                 console.error('❌ [AuthAPI] Échec de la mutation de connexion sociale.', JSON.stringify(error));
+            }
+        }
     }),
     verify2FA: builder.mutation<AuthResponse, Verify2FARequest>({
       query: (body) => ({
