@@ -52,23 +52,6 @@ const sessionSlice = createSlice({
         state.signaledPresence.push(studentId);
       }
     },
-    // The following reducers seem to belong to a different slice or are obsolete
-    // as they operate on state properties not present in SessionState.
-    // They are kept here but commented out to avoid confusion and potential errors.
-    /*
-    setConnected: (state, action: PayloadAction<boolean>) => {
-      // state.isConnected = action.payload;
-    },
-    setOnlineUsers: (state, action: PayloadAction<any[]>) => {
-       // state.onlineUsers = action.payload;
-    },
-    addInvitation: (state, action: PayloadAction<any>) => {
-      // state.invitations.push(action.payload);
-    },
-    removeInvitation: (state, action: PayloadAction<string>) => {
-      // state.invitations = state.invitations.filter(inv => inv.id !== action.payload);
-    },
-    */
   },
   extraReducers: (builder) => {
     builder

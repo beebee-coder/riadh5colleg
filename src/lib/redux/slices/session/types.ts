@@ -141,20 +141,7 @@ export interface ChatroomMessage {
   author: Partial<SafeUser>;
 }
 
-interface SessionTemplatePoll {
-  question: string;
-  options: string[];
-}
-
-export interface SessionTemplate {
-  id: string;
-  name: string;
-  description: string;
-  quizzes: Omit<Quiz, 'id' | 'startTime' | 'isActive' | 'currentQuestionIndex' | 'answers' | 'timeRemaining'>[];
-  polls: SessionTemplatePoll[];
-}
-
-export type ChatMessage = { 
+export type ChatMessage = {
   id: string;
   userId: string;
   userName: string;
@@ -212,9 +199,25 @@ export const initialState: SessionState = {
 };
 
 // --- CONSTANTS MOVED HERE ---
-type TemplatePoll = Omit<Poll, 'id' | 'isActive' | 'createdAt' | 'totalVotes'> & {
+export interface SessionTemplatePoll {
+  question: string;
   options: string[];
-};
+}
+
+export interface SessionTemplateQuiz {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  duration: number;
+}
+export interface SessionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  quizzes: Omit<Quiz, 'id' | 'startTime' | 'isActive' | 'currentQuestionIndex' | 'answers' | 'timeRemaining'>[];
+  polls: SessionTemplatePoll[];
+}
+
 
 export const reactionIcons = {
   thumbs_up: ThumbsUp,

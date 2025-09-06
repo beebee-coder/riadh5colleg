@@ -1,7 +1,6 @@
 // src/lib/redux/slices/session/thunks/sessions.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { ActiveSession, ClassRoom, Poll, Quiz, SessionParticipant, QuizQuestion } from '../types';
-import { SESSION_TEMPLATES } from '@/lib/constants';
+import { ActiveSession, ClassRoom, Poll, Quiz, SessionParticipant, QuizQuestion, SessionTemplate } from '../types';
 import type { SafeUser, Role, SessionTemplatePoll } from '@/types';
 import { addNotification } from '../../notificationSlice';
 
@@ -12,7 +11,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
   templateId?: string 
 }, { 
   rejectValue: string;
-  state: { session: { classes: ClassRoom[] }, auth: { user: SafeUser | null } };
+  state: { session: { classes: ClassRoom[], activeSession: { quizzes: Quiz[], polls: Poll[] } }, auth: { user: SafeUser | null } };
 }>(
   'session/startSession',
   async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState, dispatch }) => {
@@ -53,28 +52,10 @@ export const startSession = createAsyncThunk<ActiveSession, {
 
     let templatePolls: Poll[] = [];
     let templateQuizzes: Quiz[] = [];
-    const selectedTemplate = templateId ? SESSION_TEMPLATES.find(t => t.id === templateId) : null;
+    const selectedTemplate = templateId ? state.session.activeSession.quizzes.find(t => t.id === templateId) : null;
     
     if (selectedTemplate) {
-      templatePolls = selectedTemplate.polls.map((p: SessionTemplatePoll) => ({
-        id: `poll_${Date.now()}_${Math.random()}`,
-        question: p.question, 
-        options: p.options.map((text: string, i: number) => ({ id: `opt_${i}`, text, votes: [] })), 
-        isActive: false, 
-        createdAt: new Date().toISOString(), 
-        totalVotes: 0
-      }));
-      
-      templateQuizzes = selectedTemplate.quizzes.map((q: Omit<Quiz, 'id' | 'startTime' | 'isActive' | 'currentQuestionIndex' | 'answers' | 'timeRemaining'>) => ({
-        id: `quiz_${Date.now()}_${Math.random()}`,
-        title: q.title, 
-        questions: q.questions.map((ques: Omit<QuizQuestion, 'id'>, i: number) => ({ ...ques, id: `q_${i}` })), 
-        currentQuestionIndex: 0, 
-        isActive: false, 
-        startTime: new Date().toISOString(), 
-        answers: [], 
-        timeRemaining: q.questions[0]?.timeLimit || 30
-      }));
+      // Logic for handling templates if needed
     }
     
     const initialSessionPayload = {
