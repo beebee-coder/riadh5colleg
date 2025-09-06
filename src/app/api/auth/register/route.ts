@@ -1,7 +1,7 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Role, type SafeUser } from '@/types';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("❌ [API/Register] Erreur lors de l'inscription:", error);
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
     }
     return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
