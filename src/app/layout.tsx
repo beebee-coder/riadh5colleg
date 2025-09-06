@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { Providers } from "./Providers"; // Importation du nouveau composant
 
 export const metadata: Metadata = {
   title: "SimplePage",
@@ -29,7 +30,7 @@ export default function RootLayout({
           "font-body"
         )}
       >
-        {children}
+        <Providers>{children}</Providers> {/* Encapsulation des enfants avec le Provider */}
         <Toaster />
       </body>
     </html>

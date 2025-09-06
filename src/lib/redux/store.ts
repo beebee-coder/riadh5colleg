@@ -1,7 +1,6 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { TypedUseSelectorHook, useSelector } from 'react-redux';
 
 // APIs
 import { authApi } from './api/authApi';
