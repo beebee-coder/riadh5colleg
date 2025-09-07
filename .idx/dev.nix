@@ -7,6 +7,9 @@
   packages = [
     pkgs.nodejs_20
     pkgs.zulu
+    # Ajout crucial pour Prisma et les dépendances SSL
+    pkgs.openssl
+    pkgs.openssl.dev
   ];
   # Sets environment variables in the workspace
   env = {};

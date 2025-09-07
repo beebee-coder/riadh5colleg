@@ -25,7 +25,6 @@ async function main() {
 
   // --- Nettoyage de la base de données ---
   console.log('🧹 Nettoyage des données existantes...');
-  await prisma.userPresence.deleteMany({});
   await prisma.notification.deleteMany({});
   await prisma.attendance.deleteMany({});
   await prisma.result.deleteMany({});
@@ -42,7 +41,7 @@ async function main() {
   await prisma.classroom.deleteMany({});
   await prisma.subject.deleteMany({});
   await prisma.grade.deleteMany({});
-  
+
   // Nettoyage des utilisateurs Firebase (attention en production)
   try {
     const listUsersResult = await admin.auth().listUsers(1000);
@@ -55,7 +54,7 @@ async function main() {
   } catch(e) {
       console.warn("⚠️ Avertissement : Impossible de lister ou de supprimer les utilisateurs Firebase. Il se peut qu'il n'y en ait aucun. Erreur:", e.message);
   }
-  
+
   console.log('✅ Nettoyage terminé.');
 
   // --- Création des entités de base ---

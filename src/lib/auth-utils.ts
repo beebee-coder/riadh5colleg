@@ -1,3 +1,4 @@
+
 'use server';
 
 import { cookies } from 'next/headers';
@@ -14,16 +15,16 @@ import { Role } from '@/types';
  */
 export async function getServerSession(): Promise<{ user: SafeUser } | null> {
   console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
-  const cookieStore = cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-  if (!sessionCookie) {
-    console.log('🚫 [Serveur] Pas de jeton de session trouvé dans les cookies.');
-    return null;
-  }
-  
-  console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
   try {
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+    if (!sessionCookie) {
+      console.log('🚫 [Serveur] Pas de jeton de session trouvé dans les cookies.');
+      return null;
+    }
+    
+    console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
     const admin = await initializeFirebaseAdmin();
     
     const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, true);
@@ -46,9 +47,6 @@ export async function getServerSession(): Promise<{ user: SafeUser } | null> {
     return { user: safeUser as SafeUser };
   } catch (error) {
     console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
-    // On ne peut pas supprimer le cookie ici. L'utilisateur devra se reconnecter
-    // pour obtenir un nouveau cookie valide, ce qui écrasera l'ancien.
-    // cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }
 }
