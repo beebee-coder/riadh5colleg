@@ -42,6 +42,8 @@ model User {
   agentAdministratif  AgentAdministratif?
   messages            ChatroomMessage[]
   notifications       Notification[]  @relation("UserNotifications")
+  hostedSessions      ChatroomSession[] @relation("HostedSessions")
+  sessionParticipations SessionParticipant[]
 
   @@map("users")
 }
@@ -82,6 +84,7 @@ model Teacher {
   sex         UserSex?
   lessons     Lesson[]
   subjects    Subject[] @relation("TeacherSubjects")
+  teacherAssignments TeacherAssignment[]
 
   @@map("teachers")
 }
@@ -89,7 +92,7 @@ model Teacher {
 model Student {
   id              String      @id @default(cuid())
   userId          String      @unique
-  user            User        @relation(fields: [userId], references: [id], onDelete.Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   name            String
   surname         String
   phone           String?
@@ -280,7 +283,7 @@ model ChatroomSession {
   title             String
   type              String                 @default("CLASS") // e.g., "CLASS" or "MEETING"
   hostId            String
-  host              User                   @relation(fields: [hostId], references: [id])
+  host              User                   @relation("HostedSessions", fields: [hostId], references: [id])
   classId           Int?
   participants      SessionParticipant[]
   startTime         DateTime               @default(now())
@@ -366,6 +369,7 @@ model LessonRequirement {
     id              Int      @id @default(autoincrement())
     classId         Int
     subjectId       Int
+    subject         Subject  @relation(fields: [subjectId], references: [id])
     hours           Int
     scheduleDraftId String
     scheduleDraft   ScheduleDraft @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
@@ -390,6 +394,7 @@ model TeacherConstraint {
 model SubjectRequirement {
     id              Int      @id @default(autoincrement())
     subjectId       Int      @unique
+    subject         Subject  @relation(fields: [subjectId], references: [id])
     allowedRoomIds  Int[]    // Array of Classroom IDs
     timePreference  TimePreference @default(ANY)
     scheduleDraftId String
@@ -401,7 +406,9 @@ model SubjectRequirement {
 model TeacherAssignment {
     id              Int      @id @default(autoincrement())
     teacherId       String
+    teacher         Teacher  @relation(fields: [teacherId], references: [id])
     subjectId       Int
+    subject         Subject  @relation(fields: [subjectId], references: [id])
     classIds        Int[]
     scheduleDraftId String
     scheduleDraft   ScheduleDraft @relation(fields: [scheduleDraftId], references: [id], onDelete: Cascade)
