@@ -1,59 +1,57 @@
 // src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-import { SafeUser } from '@/types';
+import type { SafeUser } from '@/types';
 
 export async function POST(request: NextRequest) {
-  console.log("--- 🚀 API: Tentative de connexion via le backend (v3 - Final) ---");
+  console.log("--- 🚀 API: Tentative de connexion via le backend (v4 - DB-centric) ---");
   try {
-    const { idToken } = await request.json();
+    const { email, password } = await request.json();
 
-    if (!idToken) {
-      return NextResponse.json({ message: "Le token ID est manquant." }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ message: "Email et mot de passe sont requis." }, { status: 400 });
     }
 
-    const admin = await initializeFirebaseAdmin();
-    const auth = admin.auth();
-    
-    console.log("🔍 [API/login] Vérification du token ID Firebase...");
-    const decodedToken = await auth.verifyIdToken(idToken);
-    console.log(`✅ [API/login] Token ID vérifié pour UID: ${decodedToken.uid}`);
-
-    // La logique de création automatique est supprimée.
-    // Le script de seeding est maintenant la seule source de vérité pour les utilisateurs de test.
+    console.log(`[API/login] Recherche de l'utilisateur: ${email}`);
     const user = await prisma.user.findUnique({
-      where: { id: decodedToken.uid },
+      where: { email },
     });
 
-    if (!user) {
-      console.error(`❌ [API/login] Utilisateur authentifié via Firebase mais non trouvé dans la base de données pour l'UID: ${decodedToken.uid}. Assurez-vous d'avoir exécuté 'npm run db:seed'.`);
-      return NextResponse.json({ message: "Utilisateur non trouvé." }, { status: 404 });
+    if (!user || !user.password) {
+      console.log(`[API/login] Utilisateur non trouvé ou sans mot de passe: ${email}`);
+      return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
     }
 
-    console.log(`[API/login] Création du cookie de session pour ${user.email} avec le rôle ${user.role}...`);
-    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 jours
-    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
-    console.log(`✅ [API/login] Cookie de session créé.`);
+    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    if (!isPasswordValid) {
+      console.log(`[API/login] Mot de passe incorrect pour: ${email}`);
+      return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
+    }
+
+    console.log(`[API/login] Connexion réussie pour ${email}. Création du jeton personnalisé Firebase...`);
+    const admin = await initializeFirebaseAdmin();
+    const customToken = await admin.auth().createCustomToken(user.id, { role: user.role });
+    
+    // Note: The custom token is sent to the client, which then signs in with it to get an ID token.
+    // However, for server-side session management, we can go straight to creating a session cookie
+    // by creating a session cookie from a custom token. This is not directly supported.
+    // The intended flow is: client gets custom token -> client signs in with custom token -> client gets ID token -> client sends ID token to server -> server creates session cookie.
+    // To simplify, we will trust our own backend validation and proceed, but for production, the full flow is recommended.
+    // For this implementation, we will directly return the user data and the client-side `useLoginMutation` will handle it.
+    // The session cookie logic is removed from here as the client will now handle the token.
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user;
+    const { password: _, ...safeUser } = user;
 
-    const response = NextResponse.json({ user: safeUser as SafeUser });
-
-    response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: expiresIn,
-      path: '/',
-    });
+    const response = NextResponse.json({ user: safeUser as SafeUser, token: customToken });
 
     return response;
 
   } catch (error) {
     console.error('❌ [API/login] Erreur de connexion:', error);
-    return NextResponse.json({ message: "L'authentification a échoué." }, { status: 401 });
+    return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
   }
 }
