@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "cross-env NODE_ENV=production tsx server.ts",
+    "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
@@ -62,7 +62,6 @@
     "react-redux": "^9.1.2",
     "recharts": "^3.1.2",
     "redis": "^4.6.8",
-    "socket.io": "^4.7.5",
     "socket.io-client": "^4.7.5",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.4.0",
@@ -75,21 +74,18 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/jsonwebtoken": "^9.0.2",
-    "@netlify/plugin-nextjs": "^5.12.1",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",
     "@types/react-big-calendar": "^1.8.9",
     "@types/react-dom": "^18",
     "concurrently": "^8.2.1",
-    "cross-env": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",
     "prisma": "^6.15.0",
     "prisma-dbml-generator": "^0.12.0",
     "tailwindcss": "^3.4.1",
-    "tsx": "^4.0.0",
     "typescript": "^5"
   }
 }
