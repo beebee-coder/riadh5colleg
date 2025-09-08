@@ -44,24 +44,36 @@ async function main() {
     }
   ];
 
-  console.log('🔥 Vérification et création des utilisateurs dans Firebase Auth...');
+  console.log('🔥 Vérification et nettoyage des utilisateurs existants dans Firebase Auth...');
   for (const userData of usersToSeed) {
     try {
-      await admin.auth().getUser(userData.uid);
-      console.log(`- L'utilisateur Firebase ${userData.email} (UID: ${userData.uid}) existe déjà.`);
+      const userRecord = await admin.auth().getUserByEmail(userData.email);
+      console.log(`- L'utilisateur Firebase avec l'e-mail ${userData.email} existe déjà (UID: ${userRecord.uid}). Suppression en cours...`);
+      await admin.auth().deleteUser(userRecord.uid);
+      console.log(`- Utilisateur avec l'e-mail ${userData.email} supprimé.`);
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
-        await admin.auth().createUser({
-          uid: userData.uid,
-          email: userData.email,
-          password: 'password', // Mot de passe par défaut pour le seeding
-          emailVerified: true,
-          displayName: userData.name,
-        });
-        console.log(`- Utilisateur Firebase ${userData.email} (UID: ${userData.uid}) créé.`);
+        // L'utilisateur n'existe pas, c'est parfait, on continue.
       } else {
         throw error;
       }
+    }
+  }
+
+  console.log('🔥 Création des nouveaux utilisateurs dans Firebase Auth...');
+  for (const userData of usersToSeed) {
+    try {
+      await admin.auth().createUser({
+        uid: userData.uid,
+        email: userData.email,
+        password: 'password', // Mot de passe par défaut pour le seeding
+        emailVerified: true,
+        displayName: userData.name,
+      });
+      console.log(`- Utilisateur Firebase ${userData.email} (UID: ${userData.uid}) créé.`);
+    } catch (error) {
+        console.error(`- Erreur lors de la création de l'utilisateur Firebase ${userData.email}:`, error);
+        throw error;
     }
   }
 
@@ -74,8 +86,8 @@ async function main() {
   await prisma.agentAdministratif.deleteMany({});
   await prisma.user.deleteMany({
     where: {
-      id: {
-        in: usersToSeed.map(u => u.uid)
+      email: {
+        in: usersToSeed.map(u => u.email)
       }
     }
   });
