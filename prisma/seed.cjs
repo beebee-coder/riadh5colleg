@@ -1,5 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
-const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin.cjs');
+const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin');
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
@@ -35,7 +35,7 @@ async function main() {
           console.log(`[Firebase] Rôle mis à jour pour ${email} à ${role}.`);
         }
       } catch (error) {
-        if ((error as any).code === 'auth/user-not-found') {
+        if (error.code === 'auth/user-not-found') {
           console.log(`[Firebase] Utilisateur non trouvé. Création de ${email}...`);
           firebaseUser = await auth.createUser({
             email,
