@@ -1,7 +1,7 @@
 // src/lib/redux/features/teachers/teachersSlice.ts
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { TeacherWithDetails } from '@/types'; 
-import { entityApi } from '../../api/entityApi';
+import { entityApi } from '../../api/entityApi/index';
 
 export type TeachersState = {
   items: Array<TeacherWithDetails>;

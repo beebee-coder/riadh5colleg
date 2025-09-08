@@ -4,7 +4,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 
 // APIs
 import { authApi } from './api/authApi';
-import { entityApi } from './api/entityApi';
+import { entityApi } from './api/entityApi/index';
 import { draftApi } from './api/draftApi';
 
 // Slices

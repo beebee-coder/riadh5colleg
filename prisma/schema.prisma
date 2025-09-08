@@ -70,6 +70,9 @@ model User {
   messages   ChatroomMessage[]
   notifications Notification[] @relation("RecipientNotifications")
 
+  hostedSessions ChatroomSession[] @relation("HostToSession")
+  sessions       SessionParticipant[]
+
   @@map("users")
 }
 
@@ -214,7 +217,7 @@ model Subject {
 
   // For optional subjects, link to students
   students           Student[]            @relation("StudentOptionalSubjects")
-  optionalGroup      OptionalSubjectGroup? @relation(fields: [optionalGroupId], references: [id])
+  optionalGroup      OptionalSubjectGroup?
   optionalGroupId    Int?
 
   @@map("subjects")
@@ -464,7 +467,7 @@ model OptionalSubjectGroup {
     id        Int      @id @default(autoincrement())
     name      String
     students  Student[]
-    subjectId Int
+    subjectId Int @unique
     subject   Subject @relation(fields: [subjectId], references: [id])
     
     @@map("optional_subject_groups")
@@ -481,7 +484,7 @@ model ChatroomSession {
   startTime     DateTime @default(now())
   endTime       DateTime?
   hostId        String
-  host          User @relation(fields: [hostId], references: [id])
+  host          User @relation("HostToSession", fields: [hostId], references: [id])
   
   classId       Int? // Nullable for meetings
   
