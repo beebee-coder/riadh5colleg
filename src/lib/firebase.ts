@@ -13,6 +13,9 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Log the configuration to check if the environment variables are loaded
+console.log("🔑 [Firebase Config] Voici vos identifiants de configuration Firebase côté client :", firebaseConfig);
+
 // Fonction pour vérifier si la configuration est valide
 function isConfigValid(config: FirebaseOptions): boolean {
   return !!config.apiKey && !!config.projectId;
