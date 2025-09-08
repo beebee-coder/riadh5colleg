@@ -1,15 +1,11 @@
 // src/lib/redux/api/authApi.ts
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { getAuth, signInWithCustomToken } from 'firebase/auth';
 import { setUser, logout as logoutAction } from '../slices/authSlice';
 import type { SafeUser, Role } from '@/types/index';
-import { initializeFirebaseApp } from '@/lib/firebase';
-import { SESSION_COOKIE_NAME } from '@/lib/constants';
 
 // --- Response Types ---
 export interface AuthResponse {
   user: SafeUser;
-  token: string; // The custom token from our backend
 }
 
 export interface SocialAuthResponse {
@@ -37,6 +33,15 @@ export interface RegisterRequest {
   name: string;
 }
 
+export interface SocialLoginRequest {
+    idToken: string;
+}
+
+export interface Verify2FARequest {
+    tempToken: string;
+    code: string;
+}
+
 
 // --- API Definition ---
 
@@ -52,21 +57,15 @@ export const authApi = createApi({
         body: credentials,
       }),
       invalidatesTags: ['Session'],
+      // The onQueryStarted for login will now handle setting the user state
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         console.log('📡 [AuthAPI] onQueryStarted pour login. En attente de la réponse...');
         try {
           const { data } = await queryFulfilled;
-          const { user, token } = data;
-          
-          if (token) {
-            console.log('✅ [AuthAPI] Jeton personnalisé reçu. Connexion avec le client Firebase...');
-            const auth = getAuth(initializeFirebaseApp());
-            await signInWithCustomToken(auth, token);
+          if (data.user) {
+            console.log('✅ [AuthAPI] Connexion réussie. Dispatch de setUser:', data.user);
+            dispatch(setUser(data.user));
           }
-          
-          console.log('✅ [AuthAPI] Connexion réussie. Dispatch de setUser:', user);
-          dispatch(setUser(user));
-          
         } catch (error) {
           console.error('❌ [AuthAPI] Échec de la mutation de connexion.', JSON.stringify(error));
         }

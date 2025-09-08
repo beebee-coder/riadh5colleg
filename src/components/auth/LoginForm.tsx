@@ -11,9 +11,7 @@ import FormError from '@/components/forms/FormError';
 import { loginSchema } from '@/lib/formValidationSchemas';
 import SocialSignInButtons from './SocialSignInButtons';
 
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useLoginMutation } from '@/lib/redux/api/authApi';
-import { initializeFirebaseApp } from '@/lib/firebase';
 import { useState } from 'react';
 
 type LoginFormValues = z.infer<typeof loginSchema>;

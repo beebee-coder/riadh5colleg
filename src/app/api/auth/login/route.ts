@@ -5,9 +5,12 @@ import bcrypt from 'bcryptjs';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import type { SafeUser } from '@/types';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
+
 
 export async function POST(request: NextRequest) {
-  console.log("--- 🚀 API: Tentative de connexion via le backend (v4 - DB-centric) ---");
+  console.log("--- 🚀 API: Tentative de connexion via le backend (v5 - DB-first) ---");
   try {
     const { email, password } = await request.json();
 
@@ -30,28 +33,50 @@ export async function POST(request: NextRequest) {
       console.log(`[API/login] Mot de passe incorrect pour: ${email}`);
       return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
     }
-
-    console.log(`[API/login] Connexion réussie pour ${email}. Création du jeton personnalisé Firebase...`);
-    const admin = await initializeFirebaseAdmin();
-    const customToken = await admin.auth().createCustomToken(user.id, { role: user.role });
     
-    // Note: The custom token is sent to the client, which then signs in with it to get an ID token.
-    // However, for server-side session management, we can go straight to creating a session cookie
-    // by creating a session cookie from a custom token. This is not directly supported.
-    // The intended flow is: client gets custom token -> client signs in with custom token -> client gets ID token -> client sends ID token to server -> server creates session cookie.
-    // To simplify, we will trust our own backend validation and proceed, but for production, the full flow is recommended.
-    // For this implementation, we will directly return the user data and the client-side `useLoginMutation` will handle it.
-    // The session cookie logic is removed from here as the client will now handle the token.
+    // At this point, the user is authenticated against our database.
+    // Now, we create a Firebase session for them.
+    console.log(`[API/login] Connexion à la BDD réussie pour ${email}. Création de la session Firebase...`);
+    const admin = await initializeFirebaseAdmin();
+    const auth = admin.auth();
 
+    // The client SDK needs an ID token to sign in. To get one, we can either use a custom token
+    // or, more simply, leverage the fact that we have the user's plain text password here.
+    // We'll use the Firebase Client SDK on the server (a bit unusual, but works) to get an ID token.
+    // This avoids the complexity of minting custom tokens if not strictly necessary.
+
+    // Initialize a temporary client-side app instance on the server to get an ID token
+    const clientApp = initializeFirebaseApp();
+    const clientAuth = getAuth(clientApp);
+    const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
+    const idToken = await userCredential.user.getIdToken();
+
+    // Now, create the session cookie from the ID token.
+    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 days
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+    console.log(`✅ [API/login] Cookie de session créé.`);
+    
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...safeUser } = user;
 
-    const response = NextResponse.json({ user: safeUser as SafeUser, token: customToken });
+    const response = NextResponse.json({ user: safeUser as SafeUser });
+
+    console.log(`[API/login] Définition du cookie de session dans la réponse...`);
+    response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: expiresIn / 1000, // maxAge is in seconds
+      path: '/',
+    });
 
     return response;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ [API/login] Erreur de connexion:', error);
+    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        return NextResponse.json({ message: 'Email ou mot de passe incorrect.' }, { status: 401 });
+    }
     return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
   }
 }
