@@ -42,6 +42,12 @@ export const teachersSlice = createSlice({
         }
       )
       .addMatcher(
+        entityApi.endpoints.createTeacher.matchFulfilled,
+        (state, { payload }) => {
+            state.items.push(payload as TeacherWithDetails);
+        }
+      )
+      .addMatcher(
         entityApi.endpoints.deleteTeacher.matchFulfilled,
         (state, { meta }) => {
           state.items = state.items.filter(item => item.id !== meta.arg.originalArgs);
