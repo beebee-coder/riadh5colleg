@@ -1,145 +1,211 @@
-// prisma/seed.cjs
-const { PrismaClient, Role, UserSex } = require('@prisma/client');
-const { getAuth } = require('firebase-admin/auth');
-const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin.ts');
+const { PrismaClient } = require('@prisma/client');
+const { Role, UserSex } = require('@prisma/client');
+const admin = require('firebase-admin');
+
+// Load environment variables
+require('dotenv').config();
 
 const prisma = new PrismaClient();
 
-const usersToSeed = [
+// Initialize Firebase Admin SDK
+function initializeFirebaseAdmin() {
+  if (admin.apps.length) {
+    return admin;
+  }
+  
+  const adminConfig = {
+    projectId: process.env.FIREBASE_PROJECT_ID,
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  };
+
+  if (!adminConfig.projectId || !adminConfig.clientEmail || !adminConfig.privateKey) {
+    throw new Error('Firebase Admin SDK configuration is incomplete. Check environment variables.');
+  }
+  
+  admin.initializeApp({
+    credential: admin.credential.cert(adminConfig),
+  });
+  
+  return admin;
+}
+
+
+const users = [
   {
     email: 'admin@test.com',
     password: 'password',
     role: Role.ADMIN,
-    profile: { name: 'Admin', surname: 'User' },
+    profile: {
+      name: 'Admin',
+      surname: 'User',
+    },
   },
   {
     email: 'agent@test.com',
     password: 'password',
     role: Role.AGENT_ADMINISTRATIF,
-    profile: { name: 'Agent', surname: 'Administratif' },
+    profile: {
+      name: 'Agent',
+      surname: 'Administratif',
+    },
   },
   {
     email: 'teacher@test.com',
     password: 'password',
     role: Role.TEACHER,
-    profile: { name: 'Teacher', surname: 'User' },
+    profile: {
+      name: 'Teacher',
+      surname: 'User',
+      phone: '123456789',
+      address: '123 Teacher Lane',
+      bloodType: 'O+',
+      sex: UserSex.MALE,
+    },
   },
   {
     email: 'student@test.com',
     password: 'password',
     role: Role.STUDENT,
-    profile: { 
-      name: 'Student', 
+    profile: {
+      name: 'Student',
       surname: 'User',
-      birthday: new Date('2010-05-12'),
-      sex: UserSex.MALE,
-      address: '123 Test Street',
-      bloodType: 'O+',
+      phone: '987654321',
+      address: '456 Student St',
+      bloodType: 'A+',
+      birthday: new Date('2010-05-15'),
+      sex: UserSex.FEMALE,
     },
   },
   {
     email: 'parent@test.com',
     password: 'password',
     role: Role.PARENT,
-    profile: { 
-      name: 'Parent', 
+    profile: {
+      name: 'Parent',
       surname: 'User',
-      address: '456 Test Avenue',
-      phone: '123-456-7890'
+      phone: '555555555',
+      address: '789 Parent Ave',
     },
   },
 ];
 
-async function main() {
-  console.log("🌱 [Seed] Initialisation de Firebase Admin...");
-  await initializeFirebaseAdmin();
-  const auth = getAuth();
-  console.log("🌱 [Seed] Démarrage du processus de seeding...");
+async function seedUser(firebaseAuth, userData) {
+  const { email, password, role, profile } = userData;
+  let firebaseUser;
 
-  for (const userData of usersToSeed) {
-    const { email, password, role, profile } = userData;
-    let userRecord;
-
-    try {
-      // Tenter de récupérer l'utilisateur par email
-      userRecord = await auth.getUserByEmail(email);
-      console.log(`🔍 [Seed] Utilisateur Firebase trouvé pour ${email} (UID: ${userRecord.uid}). Mise à jour du rôle...`);
-      // S'assurer que le rôle est à jour
-      await auth.setCustomUserClaims(userRecord.uid, { role });
-    } catch (error) {
-      // Si l'utilisateur n'existe pas, le créer
-      if (error.code === 'auth/user-not-found') {
-        console.log(`✨ [Seed] Création de l'utilisateur Firebase pour ${email}...`);
-        userRecord = await auth.createUser({
-          email: email,
-          password: password,
-          displayName: `${profile.name} ${profile.surname}`,
-        });
-        await auth.setCustomUserClaims(userRecord.uid, { role });
-        console.log(`✅ [Seed] Utilisateur Firebase créé avec UID: ${userRecord.uid}`);
-      } else {
-        // Gérer d'autres erreurs Firebase
-        console.error(`❌ [Seed] Erreur Firebase pour ${email}:`, error);
-        continue; // Passer au prochain utilisateur en cas d'erreur
-      }
-    }
-
-    // Upsert (créer ou mettre à jour) l'utilisateur dans Prisma
-    console.log(`🔄 [Seed] Upsert de l'utilisateur dans Prisma pour ${email}...`);
-    const dbUser = await prisma.user.upsert({
-      where: { email: email },
-      update: { role: role, name: `${profile.name} ${profile.surname}` },
-      create: {
-        id: userRecord.uid,
-        email: email,
-        username: email,
-        role: role,
-        name: `${profile.name} ${profile.surname}`,
-        firstName: profile.name,
-        lastName: profile.surname,
-      },
+  try {
+    // Check if user exists in Firebase Auth
+    firebaseUser = await firebaseAuth.getUserByEmail(email);
+    console.log(`User ${email} already exists in Firebase. Updating...`);
+    await firebaseAuth.updateUser(firebaseUser.uid, {
+      password: password,
+      emailVerified: true,
     });
-
-    // Créer ou mettre à jour le profil de rôle correspondant
-    switch (role) {
-      case Role.ADMIN:
-        await prisma.admin.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, ...profile }});
-        break;
-      case Role.AGENT_ADMINISTRATIF:
-        await prisma.agentAdministratif.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, ...profile }});
-        break;
-      case Role.TEACHER:
-        await prisma.teacher.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, ...profile }});
-        break;
-      case Role.STUDENT:
-        await prisma.student.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, ...profile }});
-        break;
-      case Role.PARENT:
-        await prisma.parent.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, ...profile }});
-        break;
-    }
-     console.log(`✅ [Seed] Profil ${role} pour ${email} synchronisé.`);
-  }
-
-  // --- Seeding des données de l'application (Niveaux, Classes, etc.) ---
-  console.log("🌱 [Seed] Création des niveaux (Grades)...");
-  const grades = [];
-  for (let i = 7; i <= 9; i++) {
-      const grade = await prisma.grade.upsert({
-          where: { level: i },
-          update: {},
-          create: { level: i },
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      console.log(`User ${email} not found in Firebase. Creating...`);
+      firebaseUser = await firebaseAuth.createUser({
+        email: email,
+        password: password,
+        emailVerified: true,
       });
-      grades.push(grade);
-      console.log(`- Niveau ${i} créé/vérifié.`);
+    } else {
+      throw error; // Re-throw other errors
+    }
   }
 
-  console.log("🌱 [Seed] Toutes les opérations de seeding sont terminées.");
+  // Set custom claims
+  await firebaseAuth.setCustomUserClaims(firebaseUser.uid, { role });
+  console.log(`Custom claims set for ${email}.`);
+
+  // Upsert user in Prisma database
+  const fullName = `${profile.name} ${profile.surname}`;
+  const prismaUser = await prisma.user.upsert({
+    where: { email: email },
+    update: {
+      name: fullName,
+      firstName: profile.name,
+      lastName: profile.surname,
+      role: role,
+    },
+    create: {
+      id: firebaseUser.uid, // Use Firebase UID as the primary key
+      email: email,
+      username: email,
+      name: fullName,
+      firstName: profile.name,
+      lastName: profile.surname,
+      role: role,
+      active: true,
+    },
+  });
+
+  // Create or update role-specific profile
+  const profileData = { userId: prismaUser.id, ...profile };
+  
+  switch (role) {
+    case Role.ADMIN:
+      await prisma.admin.upsert({ where: { userId: prismaUser.id }, update: profileData, create: profileData });
+      break;
+    case Role.AGENT_ADMINISTRATIF:
+       await prisma.agentAdministratif.upsert({ where: { userId: prismaUser.id }, update: profileData, create: profileData });
+       break;
+    case Role.TEACHER:
+      await prisma.teacher.upsert({ where: { userId: prismaUser.id }, update: profileData, create: profileData });
+      break;
+    case Role.STUDENT:
+       const parent = await prisma.parent.findFirst();
+       const grade = await prisma.grade.findFirst();
+       const classe = await prisma.class.findFirst();
+       if (!parent || !grade || !classe) {
+           console.warn('Cannot create student profile: Missing Parent, Grade, or Class data.');
+           return;
+       }
+      const studentProfileData = { ...profileData, parentId: parent.id, gradeId: grade.id, classId: classe.id };
+      await prisma.student.upsert({ where: { userId: prismaUser.id }, update: studentProfileData, create: studentProfileData });
+      break;
+    case Role.PARENT:
+      await prisma.parent.upsert({ where: { userId: prismaUser.id }, update: profileData, create: profileData });
+      break;
+  }
+  
+  console.log(`Successfully seeded user: ${email} with role: ${role}`);
+}
+
+async function main() {
+    console.log("🚀 Starting the seeding process...");
+    const firebaseAdmin = initializeFirebaseAdmin();
+    const firebaseAuth = firebaseAdmin.auth();
+
+    // 1. Seed Grades first as they are dependencies
+    console.log('Seeding grades...');
+    await prisma.grade.upsert({ where: { level: 7 }, update: {}, create: { level: 7 } });
+    await prisma.grade.upsert({ where: { level: 8 }, update: {}, create: { level: 8 } });
+    await prisma.grade.upsert({ where: { level: 9 }, update: {}, create: { level: 9 } });
+
+    // 2. Seed a default class
+    console.log('Seeding a default class...');
+    const grade7 = await prisma.grade.findUnique({ where: { level: 7 } });
+    if (grade7) {
+        await prisma.class.upsert({
+            where: { name: '7ème Base 1' },
+            update: {},
+            create: { name: '7ème Base 1', gradeId: grade7.id, capacity: 30, abbreviation: '7B1' },
+        });
+    }
+
+    // 3. Seed users
+    for (const user of users) {
+        await seedUser(firebaseAuth, user);
+    }
+
+    console.log("✅ Seeding process completed successfully.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ [Seed] Une erreur est survenue durant le seeding:", e);
+    console.error("❌ An error occurred during seeding:", e);
     process.exit(1);
   })
   .finally(async () => {
