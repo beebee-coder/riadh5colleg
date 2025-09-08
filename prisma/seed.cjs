@@ -1,128 +1,169 @@
 // prisma/seed.cjs
-
 const { PrismaClient } = require('@prisma/client');
-const admin = require('firebase-admin');
-const { Role } = require('@prisma/client');
-
-// --- Configuration Firebase Admin ---
-try {
-  const serviceAccount = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  };
-
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  }
-  console.log('✅ Firebase Admin SDK configuré avec succès pour le seeding.');
-} catch (e) {
-  console.error('❌ Erreur de configuration Firebase Admin pour le seeding:', e.message);
-  process.exit(1);
-}
-// ------------------------------------
+const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin-for-seed');
+const { hash } = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
 const usersToSeed = [
-  { email: 'admin@test.com', password: 'password123', role: Role.ADMIN, name: 'Admin User' },
-  { email: 'teacher@test.com', password: 'password123', role: Role.TEACHER, name: 'Teacher User' },
-  { email: 'agent@test.com', password: 'password123', role: Role.AGENT_ADMINISTRATIF, name: 'Agent User' },
-  { email: 'parent@test.com', password: 'password123', role: Role.PARENT, name: 'Parent User' },
-  { email: 'student@test.com', password: 'password123', role: Role.STUDENT, name: 'Student User' },
+  {
+    email: 'admin@test.com',
+    password: 'password123',
+    role: 'ADMIN',
+    name: 'Admin',
+    surname: 'User',
+    profileData: {},
+  },
+  {
+    email: 'teacher@test.com',
+    password: 'password123',
+    role: 'TEACHER',
+    name: 'Teacher',
+    surname: 'User',
+    profileData: {},
+  },
+  {
+    email: 'agent@test.com',
+    password: 'password123',
+    role: 'AGENT_ADMINISTRATIF',
+    name: 'Agent',
+    surname: 'Admin',
+    profileData: {},
+  },
+  {
+    email: 'parent@test.com',
+    password: 'password123',
+    role: 'PARENT',
+    name: 'Parent',
+    surname: 'User',
+    profileData: { address: '123 Main St' },
+  },
+  {
+    email: 'student@test.com',
+    password: 'password123',
+    role: 'STUDENT',
+    name: 'Student',
+    surname: 'User',
+    profileData: {
+      bloodType: 'O+',
+      birthday: new Date('2010-05-20T00:00:00.000Z'),
+      sex: 'MALE',
+      address: '456 School Ln',
+      phone: '555-1234',
+    },
+  },
 ];
 
 async function main() {
   console.log('🌱 Starting database seeding...');
+  const admin = await initializeFirebaseAdmin();
+  const auth = admin.auth();
 
   for (const userData of usersToSeed) {
-    const { email, password, role, name } = userData;
-    const [firstName, ...lastNameParts] = name.split(' ');
-    const lastName = lastNameParts.join(' ') || '';
+    const { email, password, role, name, surname, profileData } = userData;
 
     try {
-      let userRecord;
-      
-      // 1. Vérifier si l'utilisateur existe déjà dans Firebase Auth
+      // 1. Get or Create Firebase User
+      let firebaseUser;
       try {
-        userRecord = await admin.auth().getUserByEmail(email);
-        console.log(`🙋‍♂️ Utilisateur Firebase déjà existant : ${email} (UID: ${userRecord.uid})`);
-        
-        // S'assurer que le rôle est correctement défini dans les revendications personnalisées
-        if (userRecord.customClaims?.role !== role) {
-          await admin.auth().setCustomUserClaims(userRecord.uid, { role });
-          console.log(`🏷️  Rôle mis à jour pour ${email} en ${role}.`);
-        }
+        firebaseUser = await auth.getUserByEmail(email);
+        console.log(`🔥 Found existing Firebase user: ${email} (UID: ${firebaseUser.uid})`);
       } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-          // Si l'utilisateur n'existe pas, le créer
-          userRecord = await admin.auth().createUser({
+        if ((error as any).code === 'auth/user-not-found') {
+          console.log(`🔥 Firebase user ${email} not found. Creating...`);
+          firebaseUser = await auth.createUser({
             email,
             password,
+            displayName: `${name} ${surname}`,
             emailVerified: true,
-            displayName: name,
+            disabled: false,
           });
-          await admin.auth().setCustomUserClaims(userRecord.uid, { role });
-          console.log(`✨ Utilisateur Firebase créé : ${email} (UID: ${userRecord.uid})`);
+          console.log(`🔥 Created Firebase user: ${email} (UID: ${firebaseUser.uid})`);
         } else {
-          // Gérer d'autres erreurs Firebase
-          throw error;
+          throw error; // Re-throw other Firebase errors
         }
       }
-      
-      const { uid } = userRecord;
 
-      // 2. Vérifier si l'utilisateur existe dans Prisma DB, sinon le créer/mettre à jour
-      const existingDbUser = await prisma.user.findUnique({
+      const { uid } = firebaseUser;
+
+      // 2. Set Firebase Custom Claims
+      await auth.setCustomUserClaims(uid, { role });
+      console.log(`👑 Set custom claim 'role: ${role}' for ${email}`);
+
+      // 3. Create or Update user in PostgreSQL database using the Firebase UID
+      const dbUser = await prisma.user.upsert({
         where: { id: uid },
+        update: {
+          email: email,
+          username: email,
+          name: `${name} ${surname}`,
+          firstName: name,
+          lastName: surname,
+          role: role,
+        },
+        create: {
+          id: uid,
+          email: email,
+          username: email,
+          name: `${name} ${surname}`,
+          firstName: name,
+          lastName: surname,
+          role: role,
+        },
       });
 
-      if (!existingDbUser) {
-        console.log(`📝 Création de l'enregistrement dans Prisma pour ${email} (UID: ${uid})`);
-        await prisma.user.create({
-          data: {
-            id: uid,
-            email,
-            username: email,
-            role,
-            name,
-            firstName,
-            lastName,
-            active: true,
-            parent: role === Role.PARENT ? { create: { name: firstName, surname: lastName, address: 'Adresse par défaut' } } : undefined,
-            teacher: role === Role.TEACHER ? { create: { name: firstName, surname: lastName } } : undefined,
-            admin: role === Role.ADMIN ? { create: { name: firstName, surname: lastName } } : undefined,
-            agentAdministratif: role === Role.AGENT_ADMINISTRATIF ? { create: { name: firstName, surname: lastName } } : undefined,
-            student: role === Role.STUDENT ? {
-              create: {
-                name: firstName,
-                surname: lastName,
-                address: 'Adresse par défaut',
-                birthday: new Date('2008-05-12T00:00:00.000Z'),
-                bloodType: 'O+',
-                sex: 'MALE',
-                // Logique pour associer à une classe/parent/niveau si nécessaire
-              },
-            } : undefined,
-          },
-        });
-      } else {
-        console.log(`✅ Utilisateur Prisma déjà existant pour ${email}.`);
+      console.log(`📦 Synced user in DB: ${dbUser.email}`);
+
+      // 4. Create or Update role-specific profile
+      switch (role) {
+        case 'ADMIN':
+          await prisma.admin.upsert({
+            where: { userId: uid },
+            update: { name, surname },
+            create: { userId: uid, name, surname, ...profileData },
+          });
+          break;
+        case 'TEACHER':
+          await prisma.teacher.upsert({
+            where: { userId: uid },
+            update: { name, surname },
+            create: { userId: uid, name, surname, ...profileData },
+          });
+          break;
+        case 'AGENT_ADMINISTRATIF':
+          await prisma.agentAdministratif.upsert({
+             where: { userId: uid },
+             update: { name, surname },
+             create: { userId: uid, name, surname, ...profileData },
+          });
+          break;
+        case 'PARENT':
+          await prisma.parent.upsert({
+            where: { userId: uid },
+            update: { name, surname },
+            create: { userId: uid, name, surname, ...profileData },
+          });
+          break;
+        case 'STUDENT':
+          await prisma.student.upsert({
+            where: { userId: uid },
+            update: { name, surname },
+            create: { userId: uid, name, surname, ...profileData },
+          });
+          break;
       }
-      
+      console.log(`✅ Successfully seeded user: ${email}`);
     } catch (error) {
-      console.error(`❌ Erreur lors du seeding pour ${email}:`, error.message);
+      console.error(`❌ Failed to seed user ${email}:`, error);
     }
   }
 
-  console.log('Seeding finished.');
+  console.log('🌱 Seeding finished.');
 }
 
 main()
   .catch((e) => {
-    console.error('An error occurred during seeding:', e);
+    console.error('❌ Seeding script failed:', e);
     process.exit(1);
   })
   .finally(async () => {
