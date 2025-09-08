@@ -3,11 +3,9 @@
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useLoginMutation } from '@/lib/redux/api/authApi';
-import { initializeFirebaseApp } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 
 const GoogleIcon = (props: React.ComponentProps<'svg'>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -19,36 +17,16 @@ const GoogleIcon = (props: React.ComponentProps<'svg'>) => (
 
 export default function SocialSignInButtons() {
     const { toast } = useToast();
-    const router = useRouter();
-    const [loginApi, { isLoading }] = useLoginMutation();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleGoogleSignIn = async () => {
-        try {
-            const app = initializeFirebaseApp();
-            const auth = getAuth(app);
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-            const idToken = await result.user.getIdToken();
-
-            // The social login flow now directly uses the main login endpoint
-            await loginApi({ idToken }).unwrap();
-            
-            toast({ title: "Connexion réussie", description: "Bienvenue !" });
-            router.push('/dashboard');
-
-        } catch (error: any) {
-            console.error("Google Sign-In Error:", error);
-            let errorMessage = error.data?.message || "La connexion via Google a échoué. Veuillez réessayer.";
-
-            if (error.code === 'auth/popup-blocked') {
-                errorMessage = "Popup bloqué: Veuillez autoriser les popups pour ce site pour vous connecter avec Google.";
-            }
-            toast({
-                variant: 'destructive',
-                title: 'Erreur de connexion',
-                description: errorMessage,
-            });
-        }
+        setIsLoading(true);
+        toast({
+            variant: 'destructive',
+            title: 'Fonctionnalité non implémentée',
+            description: 'La connexion via Google n\'est pas encore prise en charge dans ce flux simplifié.',
+        });
+        setIsLoading(false);
     };
 
     return (

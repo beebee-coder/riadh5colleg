@@ -2,15 +2,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import type { SafeUser } from '@/types';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeFirebaseApp } from '@/lib/firebase';
+import { cookies } from 'next/headers';
+
+// This is a placeholder for a secure session creation logic (e.g., using JWT)
+// For simplicity, we'll store a serialized user object, but in production, use a secure token.
+async function createSessionCookie(user: SafeUser) {
+    // In a real app, you would sign a JWT here.
+    const sessionPayload = JSON.stringify(user);
+    return sessionPayload;
+}
 
 
 export async function POST(request: NextRequest) {
-  console.log("--- 🚀 API: Tentative de connexion via le backend (v5 - DB-first) ---");
+  console.log("--- 🚀 API: Tentative de connexion via le backend (DB-first) ---");
   try {
     const { email, password } = await request.json();
 
@@ -34,49 +40,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Email ou mot de passe incorrect." }, { status: 401 });
     }
     
-    // At this point, the user is authenticated against our database.
-    // Now, we create a Firebase session for them.
-    console.log(`[API/login] Connexion à la BDD réussie pour ${email}. Création de la session Firebase...`);
-    const admin = await initializeFirebaseAdmin();
-    const auth = admin.auth();
-
-    // The client SDK needs an ID token to sign in. To get one, we can either use a custom token
-    // or, more simply, leverage the fact that we have the user's plain text password here.
-    // We'll use the Firebase Client SDK on the server (a bit unusual, but works) to get an ID token.
-    // This avoids the complexity of minting custom tokens if not strictly necessary.
-
-    // Initialize a temporary client-side app instance on the server to get an ID token
-    const clientApp = initializeFirebaseApp();
-    const clientAuth = getAuth(clientApp);
-    const userCredential = await signInWithEmailAndPassword(clientAuth, email, password);
-    const idToken = await userCredential.user.getIdToken();
-
-    // Now, create the session cookie from the ID token.
-    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 days
-    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
-    console.log(`✅ [API/login] Cookie de session créé.`);
+    console.log(`[API/login] Connexion à la BDD réussie pour ${email}. Création du cookie de session...`);
     
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...safeUser } = user;
 
-    const response = NextResponse.json({ user: safeUser as SafeUser });
+    const sessionValue = await createSessionCookie(safeUser as SafeUser);
+    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 days
 
-    console.log(`[API/login] Définition du cookie de session dans la réponse...`);
-    response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
+    cookies().set(SESSION_COOKIE_NAME, sessionValue, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: expiresIn / 1000, // maxAge is in seconds
+      maxAge: expiresIn,
       path: '/',
     });
+
+    console.log(`✅ [API/login] Cookie de session créé pour ${email}.`);
+    
+    const response = NextResponse.json({ user: safeUser as SafeUser });
 
     return response;
 
   } catch (error: any) {
     console.error('❌ [API/login] Erreur de connexion:', error);
-    if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        return NextResponse.json({ message: 'Email ou mot de passe incorrect.' }, { status: 401 });
-    }
     return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
   }
 }

@@ -3,49 +3,37 @@
 
 import { cookies } from 'next/headers';
 import { SESSION_COOKIE_NAME } from './constants';
-import { initializeFirebaseAdmin } from './firebase-admin';
 import type { SafeUser } from '@/types';
-import prisma from './prisma';
+
 
 /**
- * Retrieves the server-side session by verifying the Firebase session cookie.
- * This is the primary method for protecting server-side routes and API endpoints.
+ * Retrieves the server-side session by reading the session cookie.
  * @returns A promise that resolves to the session payload (containing the user) or null if invalid.
  */
 export async function getServerSession(): Promise<{ user: SafeUser } | null> {
-  console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
+  console.log('--- 🍪 [Serveur] Tentative de récupération de la session (DB-first) ---');
   try {
     const cookieStore = cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionCookie) {
-      console.log('🚫 [Serveur] Pas de jeton de session trouvé dans les cookies.');
+      console.log('🚫 [Serveur] Pas de cookie de session trouvé.');
       return null;
     }
     
-    console.log('✅ [Serveur] Jeton trouvé, tentative de vérification...');
-    const admin = await initializeFirebaseAdmin();
+    console.log('✅ [Serveur] Cookie de session trouvé, tentative de parsing...');
+    const user = JSON.parse(sessionCookie) as SafeUser;
     
-    const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, true);
-    console.log('🔍 [Serveur] Jeton décodé:', decodedToken);
-    
-    console.log(`📦 [Serveur/Session] Recherche de l'utilisateur dans Prisma pour l'UID: ${decodedToken.uid}`);
-    const user = await prisma.user.findUnique({
-      where: { id: decodedToken.uid },
-    });
-
-    if (!user) {
-      console.error(`❌ [Serveur/Session] Utilisateur non trouvé dans Prisma pour l'UID: ${decodedToken.uid}`);
-      return null;
+    if (!user || !user.id) {
+        console.error('❌ [Serveur/Session] Le cookie de session est malformé ou ne contient pas d\'utilisateur.');
+        return null;
     }
 
-    console.log(`✅ [Serveur/Session] Utilisateur trouvé: ${user.email}`);
+    console.log(`✅ [Serveur/Session] Session valide trouvée pour: ${user.email}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user;
-    return { user: safeUser as SafeUser };
+    return { user };
   } catch (error) {
-    console.error('❌ [Serveur] Jeton de session invalide ou expiré:', error);
+    console.error('❌ [Serveur] Le cookie de session est invalide ou corrompu:', error);
     return null;
   }
 }

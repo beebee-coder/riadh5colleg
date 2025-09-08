@@ -20,9 +20,7 @@ export default function LoginForm() {
   console.log("⚛️ [LoginForm] Le composant de connexion est rendu.");
   const router = useRouter();
   const { toast } = useToast();
-  const [loginApi, { isLoading: isApiLoading }] = useLoginMutation();
-  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
-  const isLoading = isApiLoading || isFirebaseLoading;
+  const [loginApi, { isLoading }] = useLoginMutation();
   
   const {
     register,
@@ -34,7 +32,6 @@ export default function LoginForm() {
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     console.log("🔑 [LoginForm] Tentative de connexion soumise pour:", data.email);
-    setIsFirebaseLoading(true);
     try {
       await loginApi(data).unwrap();
       
@@ -44,19 +41,17 @@ export default function LoginForm() {
         description: "Vous allez être redirigé vers votre tableau de bord."
       });
       
-      // Redirect to the central dashboard page, which will handle role-based routing.
       router.push('/dashboard');
+      router.refresh(); // Force a refresh to ensure the new session is picked up
 
     } catch (error: any) {
       console.error("❌ [LoginForm] Erreur de connexion:", JSON.stringify(error, null, 2));
-      const errorMessage = error.data?.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur inattendue est survenue. Veuillez réessayer.");
+      const errorMessage = error.data?.message || "Une erreur inattendue est survenue. Veuillez réessayer.";
       toast({
         variant: "destructive",
         title: "Échec de la connexion",
         description: errorMessage,
       });
-    } finally {
-      setIsFirebaseLoading(false);
     }
   };
 

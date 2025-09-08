@@ -11,9 +11,6 @@ import { Loader2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { Role } from '@/types';
-import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { initializeFirebaseApp } from '@/lib/firebase';
 
 type RegisterFormValues = RegisterSchema;
 
@@ -21,38 +18,21 @@ export default function RegisterForm() {
   console.log("⚛️ [RegisterForm] Le composant d'inscription est rendu.");
   const router = useRouter();
   const { toast } = useToast();
-  const [registerApi, { isLoading: isApiLoading }] = useRegisterMutation();
-  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
-  const isLoading = isApiLoading || isFirebaseLoading;
+  const [registerApi, { isLoading }] = useRegisterMutation();
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { role: Role.PARENT },
   });
 
-  const role = watch('role');
-
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     console.log("📝 [RegisterForm] Tentative d'inscription soumise pour:", data.email);
-    setIsFirebaseLoading(true);
     try {
-      const app = initializeFirebaseApp();
-      const auth = getAuth(app);
-      
-      console.log("🔥 [RegisterForm] Création de l'utilisateur dans Firebase Auth...");
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      console.log("✅ [RegisterForm] Utilisateur Firebase créé. Obtention du token ID...");
-      const idToken = await userCredential.user.getIdToken();
-
-      console.log("📡 [RegisterForm] Envoi des informations à notre API backend pour créer le profil...");
-      await registerApi({ idToken, role: data.role, name: data.name }).unwrap();
-      console.log("✅ [RegisterForm] Profil créé avec succès dans notre base de données.");
+      await registerApi(data).unwrap();
       
       toast({
         title: 'Compte créé !',
@@ -61,14 +41,12 @@ export default function RegisterForm() {
       router.push('/login');
     } catch (error: any) {
       console.error("❌ [RegisterForm] Erreur lors de l'inscription:", error);
-      const errorMessage = error.data?.message || (error.code === 'auth/email-already-in-use' ? 'Cette adresse e-mail est déjà utilisée.' : "Une erreur inattendue s'est produite.");
+      const errorMessage = error.data?.message || "Une erreur inattendue s'est produite.";
       toast({
         variant: 'destructive',
         title: 'Erreur lors de l\'inscription',
         description: errorMessage,
       });
-    } finally {
-      setIsFirebaseLoading(false);
     }
   };
 

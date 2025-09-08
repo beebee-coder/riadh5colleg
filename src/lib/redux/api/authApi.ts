@@ -8,11 +8,6 @@ export interface AuthResponse {
   user: SafeUser;
 }
 
-export interface SocialAuthResponse {
-    user: SafeUser;
-    isNewUser: boolean;
-}
-
 export interface LogoutResponse {
     message: string;
 }
@@ -28,18 +23,10 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  idToken: string;
-  role: Role;
+  email: string;
   name: string;
-}
-
-export interface SocialLoginRequest {
-    idToken: string;
-}
-
-export interface Verify2FARequest {
-    tempToken: string;
-    code: string;
+  password: string;
+  role: Role;
 }
 
 
