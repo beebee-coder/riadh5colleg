@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-import { SafeUser } from '@/types';
+import { SafeUser, Role } from '@/types';
 
 export async function POST(request: NextRequest) {
-  console.log("--- 🚀 API: Tentative de connexion via le backend ---");
+  console.log("--- 🚀 API: Tentative de connexion via le backend (v2) ---");
   try {
     const { idToken } = await request.json();
 
@@ -19,29 +19,52 @@ export async function POST(request: NextRequest) {
     
     console.log("🔍 [API/login] Vérification du token ID Firebase...");
     const decodedToken = await auth.verifyIdToken(idToken);
-    console.log(`✅ [API/login] Token ID vérifié pour UID: ${decodedToken.uid}`);
+    const { uid, email, name } = decodedToken;
+    console.log(`✅ [API/login] Token ID vérifié pour UID: ${uid}`);
 
-    const user = await prisma.user.findUnique({
-      where: { id: decodedToken.uid },
+    let user = await prisma.user.findUnique({
+      where: { id: uid },
     });
 
+    // **LA CORRECTION CHIRURGICALE EST ICI**
+    // Si l'utilisateur n'existe pas dans notre base de données, nous le créons.
     if (!user) {
-      console.error(`❌ [API/login] Utilisateur non trouvé dans la base de données pour UID: ${decodedToken.uid}`);
-      return NextResponse.json({ message: "Utilisateur non trouvé." }, { status: 404 });
+      console.warn(`[API/login] Utilisateur authentifié via Firebase (UID: ${uid}) mais non trouvé dans la BDD. Création du profil...`);
+      
+      const [firstName, ...lastNameParts] = (name || email!).split(' ');
+      const lastName = lastNameParts.join(' ') || '';
+
+      // Crée un nouvel utilisateur et un profil Parent par défaut
+      user = await prisma.user.create({
+        data: {
+          id: uid,
+          email: email!,
+          username: email!,
+          name: name || email!,
+          firstName: firstName,
+          lastName: lastName,
+          role: Role.PARENT, // Rôle par défaut sécurisé
+          active: true,
+          parent: {
+            create: {
+              name: firstName,
+              surname: lastName,
+              address: '',
+            },
+          },
+        },
+      });
+       console.log(`[API/login] Profil utilisateur et parent créé pour ${email}.`);
     }
 
     console.log(`[API/login] Création du cookie de session...`);
-    // Durée de validité du cookie de session (ex: 7 jours)
-    const expiresIn = 60 * 60 * 24 * 7 * 1000;
+    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 jours
     const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
     console.log(`✅ [API/login] Cookie de session créé.`);
 
-    // Create a safe user object without the password
     const { password, ...safeUser } = user;
-
     const response = NextResponse.json({ user: safeUser });
 
-    console.log(`[API/login] Définition du cookie de session dans la réponse...`);
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
