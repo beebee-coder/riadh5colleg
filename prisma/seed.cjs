@@ -1,120 +1,126 @@
-// prisma/seed.cjs
-const { PrismaClient, Role, UserSex } = require('@prisma/client');
+const { PrismaClient } = require('@prisma/client');
 const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin-for-seed.js');
 const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Démarrage du processus de seeding...");
-
-  let admin;
-  try {
-    admin = initializeFirebaseAdmin();
-  } catch (e) {
-    console.error("❌ Impossible d'initialiser Firebase Admin. Assurez-vous que vos variables d'environnement sont correctes.");
-    return;
-  }
-  
+  const admin = initializeFirebaseAdmin();
   const auth = admin.auth();
 
-  const usersData = [
-    { email: 'admin@test.com', password: 'password123', role: Role.ADMIN, name: 'Admin', surname: 'User' },
-    { email: 'teacher@test.com', password: 'password123', role: Role.TEACHER, name: 'Teacher', surname: 'User' },
-    { email: 'agent@test.com', password: 'password123', role: Role.AGENT_ADMINISTRATIF, name: 'Agent', surname: 'User' },
-    { email: 'parent@test.com', password: 'password123', role: Role.PARENT, name: 'Parent', surname: 'User' },
-    { email: 'student@test.com', password: 'password123', role: Role.STUDENT, name: 'Student', surname: 'User' },
+  console.log('🌱 Starting database seeding...');
+
+  // 1. Nettoyage complet
+  console.log('🧹 Clearing existing data...');
+  const allUserIds = (await prisma.user.findMany({ select: { id: true } })).map(u => u.id);
+  if (allUserIds.length > 0) {
+      try {
+        await auth.deleteUsers(allUserIds);
+        console.log(`🔥 Deleted ${allUserIds.length} users from Firebase Auth.`);
+      } catch(e) {
+        console.warn(`⚠️ Could not delete all users from Firebase, some may not exist. Error: ${e.message}`);
+      }
+  }
+  
+  await prisma.teacherAssignment.deleteMany({});
+  await prisma.subjectRequirement.deleteMany({});
+  await prisma.teacherConstraint.deleteMany({});
+  await prisma.lessonRequirement.deleteMany({});
+  await prisma.result.deleteMany({});
+  await prisma.exam.deleteMany({});
+  await prisma.assignment.deleteMany({});
+  await prisma.attendance.deleteMany({});
+  await prisma.lesson.deleteMany({});
+  await prisma.announcement.deleteMany({});
+  await prisma.event.deleteMany({});
+  await prisma.notification.deleteMany({});
+  await prisma.chatroomMessage.deleteMany({});
+  await prisma.sessionParticipant.deleteMany({});
+  await prisma.chatroomSession.deleteMany({});
+  await prisma.scheduleDraft.deleteMany({});
+  await prisma.student.deleteMany({});
+  await prisma.parent.deleteMany({});
+  await prisma.teacher.deleteMany({});
+  await prisma.admin.deleteMany({});
+  await prisma.agentAdministratif.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.class.deleteMany({});
+  await prisma.subject.deleteMany({});
+  await prisma.classroom.deleteMany({});
+  await prisma.grade.deleteMany({});
+  
+  console.log('✅ Data cleared.');
+
+  // 2. Création des utilisateurs avec des rôles
+  const usersToCreate = [
+    { email: 'admin@test.com', password: 'password123', role: 'ADMIN', name: 'Admin User' },
+    { email: 'teacher@test.com', password: 'password123', role: 'TEACHER', name: 'Teacher User' },
+    { email: 'agent@test.com', password: 'password123', role: 'AGENT_ADMINISTRATIF', name: 'Agent User' },
+    { email: 'parent@test.com', password: 'password123', role: 'PARENT', name: 'Parent User' },
+    { email: 'student@test.com', password: 'password123', role: 'STUDENT', name: 'Student User' },
   ];
 
-  for (const userData of usersData) {
-    const { email, password, role, name, surname } = userData;
-    console.log(`--- Traitement de l'utilisateur: ${email} ---`);
-
+  for (const userData of usersToCreate) {
     try {
-      let firebaseUser;
-      try {
-        firebaseUser = await auth.getUserByEmail(email);
-        console.log(`✔️ Utilisateur trouvé dans Firebase Auth: ${firebaseUser.uid}`);
-      } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-          console.log(`✨ Utilisateur non trouvé dans Firebase Auth. Création en cours...`);
-          firebaseUser = await auth.createUser({
-            email: email,
-            password: password,
-            displayName: `${name} ${surname}`,
-            emailVerified: true,
-            disabled: false,
-          });
-          console.log(`✔️ Utilisateur créé dans Firebase Auth: ${firebaseUser.uid}`);
-        } else {
-          throw error;
-        }
-      }
+      console.log(`Creating user: ${userData.email}`);
+      const userRecord = await auth.createUser({
+        email: userData.email,
+        password: userData.password,
+        displayName: userData.name,
+      });
 
-      // Définir le rôle dans les revendications personnalisées de Firebase
-      await auth.setCustomUserClaims(firebaseUser.uid, { role });
-      console.log(`👑 Rôle '${role}' défini pour l'utilisateur ${email} dans Firebase.`);
+      console.log(`Successfully created Firebase user: ${userRecord.uid}`);
+      await auth.setCustomUserClaims(userRecord.uid, { role: userData.role });
 
-      // Utiliser upsert pour créer ou mettre à jour l'utilisateur dans la base de données locale
-      const dbUser = await prisma.user.upsert({
-        where: { id: firebaseUser.uid },
-        update: {
-          role: role,
-          name: `${name} ${surname}`,
-          firstName: name,
-          lastName: surname,
-          email: email,
-        },
-        create: {
-          id: firebaseUser.uid,
-          email: email,
-          username: email,
-          name: `${name} ${surname}`,
-          firstName: name,
-          lastName: surname,
-          role: role,
+      const [firstName, ...lastNameParts] = userData.name.split(' ');
+      const lastName = lastNameParts.join(' ') || '';
+
+      const createdUser = await prisma.user.create({
+        data: {
+          id: userRecord.uid,
+          email: userData.email,
+          role: userData.role,
+          name: userData.name,
+          username: userData.email,
+          firstName,
+          lastName,
           active: true,
         },
       });
-      console.log(`✔️ Utilisateur créé/mis à jour dans la base de données: ${dbUser.email}`);
 
-      // Créer le profil de rôle correspondant si nécessaire
-      switch (role) {
-        case Role.ADMIN:
-          await prisma.admin.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, name, surname } });
+      switch (userData.role) {
+        case 'ADMIN':
+          await prisma.admin.create({ data: { userId: createdUser.id, name: firstName, surname: lastName } });
           break;
-        case Role.TEACHER:
-          await prisma.teacher.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, name, surname } });
+        case 'TEACHER':
+          await prisma.teacher.create({ data: { userId: createdUser.id, name: firstName, surname: lastName } });
           break;
-        case Role.AGENT_ADMINISTRATIF:
-            await prisma.agentAdministratif.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, name, surname } });
-            break;
-        case Role.PARENT:
-          await prisma.parent.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, name, surname, address: '' } });
+        case 'AGENT_ADMINISTRATIF':
+          await prisma.agentAdministratif.create({ data: { userId: createdUser.id, name: firstName, surname: lastName }});
           break;
-        case Role.STUDENT:
-          const parent = await prisma.parent.findFirst();
-          if (parent) {
-            await prisma.student.upsert({ where: { userId: dbUser.id }, update: {}, create: { userId: dbUser.id, name, surname, parentId: parent.id, sex: UserSex.MALE, birthday: new Date() } });
-          } else {
-            console.warn("⚠️ Aucun parent trouvé pour lier à l'étudiant. L'étudiant ne sera pas créé.");
-          }
+        case 'PARENT':
+          await prisma.parent.create({ data: { userId: createdUser.id, name: firstName, surname: lastName, address: 'Default Address' } });
+          break;
+        case 'STUDENT':
+          // For simplicity, student is created without class/grade/parent here. 
+          // You can add logic to link them if necessary.
+          await prisma.student.create({ data: { userId: createdUser.id, name: firstName, surname: lastName, birthday: new Date() } });
           break;
       }
-       console.log(`✔️ Profil de rôle '${role}' créé/mis à jour pour ${email}.`);
-
+      console.log(`✅ Created DB profile for ${userData.email}`);
     } catch (error) {
-      console.error(`❌ Erreur lors du traitement de l'utilisateur ${email}:`, error);
+      console.error(`❌ Failed to create user ${userData.email}:`, error.message);
     }
   }
+
+  console.log('🎉 Seeding finished successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Erreur dans le script de seed :", e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-    console.log("🌱 Seeding terminé. Déconnexion de Prisma.");
   });

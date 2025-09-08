@@ -347,6 +347,46 @@ export type JsonValue = string | number | boolean | JsonObject | JsonArray | nul
 export type JsonObject = { [Key in string]?: JsonValue };
 export type JsonArray = JsonValue[];
 
+export interface SessionTemplatePoll {
+  question: string;
+  options: string[];
+  correctAnswer?: string; // Optional, for quiz-like polls
+  duration?: number; // Optional, in seconds
+}
+
+// Example of a SessionTemplate with polls and quizzes
+export interface SessionTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  polls?: SessionTemplatePoll[];
+  quizzes?: SessionTemplateQuiz[];
+  // Other template properties
+}
+
+export interface SessionTemplateQuiz {
+  question: string;
+  options: string[];
+  correctAnswer: string; // Quizzes require a correct answer
+  duration: number; // Quizzes usually have a time limit
+}
+
+export interface ActivePoll extends SessionTemplatePoll {
+  id: string;
+  sessionId: string;
+  startTime: Date;
+  endTime?: Date; // Will be set when the poll ends
+  results?: { option: string; count: number }[];
+  userVotes?: { userId: string; option: string }[];
+}
+
+export interface ActiveQuiz extends SessionTemplateQuiz {
+  id: string;
+  sessionId: string;
+  startTime: Date;
+  endTime?: Date; // Will be set when the quiz ends
+  userAnswers?: { userId: string; answer: string; isCorrect: boolean }[];
+}
 
 export type SchoolData = {
     id?: number | string,
