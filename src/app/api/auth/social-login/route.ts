@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
         const admin = await initializeFirebaseAdmin();
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const { email } = decodedToken;
+        const { uid, email, name } = decodedToken;
 
         let user = await prisma.user.findUnique({
             where: { email: email! },
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         // The user must exist in the database. Social login does not automatically create users.
         // Seeding is the source of truth for test users.
         if (!user) {
-            console.error(`[API/social-login] Tentative de connexion sociale pour un utilisateur inexistant: ${email}. L'utilisateur doit d'abord être créé via le seeding.`);
+             console.error(`[API/social-login] Tentative de connexion sociale pour un utilisateur inexistant: ${email}. L'utilisateur doit d'abord être créé via le seeding.`);
             return NextResponse.json({ message: `Utilisateur non trouvé pour l'email ${email}. Veuillez contacter l'administrateur.` }, { status: 404 });
         }
         
