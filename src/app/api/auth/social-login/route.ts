@@ -13,49 +13,26 @@ export async function POST(request: NextRequest) {
 
         const admin = await initializeFirebaseAdmin();
         const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const { uid, email, name } = decodedToken;
+        const { email } = decodedToken;
 
         let user = await prisma.user.findUnique({
             where: { email: email! },
         });
 
-        let isNewUser = false;
+        // The user must exist in the database. Social login does not automatically create users.
+        // Seeding is the source of truth for test users.
         if (!user) {
-            console.log(`[API/social-login] Nouvel utilisateur via fournisseur social: ${email}. Création du profil...`);
-            isNewUser = true;
-
-            const [firstName, ...lastNameParts] = (name || email!).split(' ');
-            const lastName = lastNameParts.join(' ') || '';
-
-            // Crée un nouvel utilisateur et un profil parent par défaut.
-            user = await prisma.user.create({
-                data: {
-                    id: uid,
-                    email: email!,
-                    username: email!,
-                    name: name || email!,
-                    firstName: firstName,
-                    lastName: lastName,
-                    role: Role.PARENT, // Rôle par défaut pour les nouvelles inscriptions sociales
-                    active: true,
-                    img: decodedToken.picture,
-                    parent: {
-                        create: {
-                            name: firstName,
-                            surname: lastName,
-                            address: '',
-                        },
-                    },
-                },
-            });
-            
-            // Définit le rôle dans les revendications personnalisées de Firebase
-            await admin.auth().setCustomUserClaims(uid, { role: Role.PARENT });
+            console.error(`[API/social-login] Tentative de connexion sociale pour un utilisateur inexistant: ${email}. L'utilisateur doit d'abord être créé via le seeding.`);
+            return NextResponse.json({ message: `Utilisateur non trouvé pour l'email ${email}. Veuillez contacter l'administrateur.` }, { status: 404 });
         }
         
+        console.log(`[API/social-login] Connexion sociale réussie pour l'utilisateur existant: ${email}`);
+        
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, ...safeUser } = user;
 
-        return NextResponse.json({ user: safeUser, isNewUser });
+        // isNewUser is always false because we are not creating users here.
+        return NextResponse.json({ user: safeUser, isNewUser: false });
 
     } catch (error: any) {
         console.error('❌ [API/social-login] Erreur:', error);

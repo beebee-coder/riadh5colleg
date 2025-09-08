@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[API/Register] Création d'un nouvel utilisateur dans la base de données pour ${email} avec le rôle ${role}...`);
-    const newUser = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const newUser = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
             data: {
                 id: uid, // Use Firebase UID as the primary key
@@ -53,8 +53,6 @@ export async function POST(req: NextRequest) {
             await tx.teacher.create({ data: { userId: user.id, name: firstName, surname: lastName } });
         } else if (role === Role.PARENT) {
             await tx.parent.create({ data: { userId: user.id, name: firstName, surname: lastName, address: '' } });
-        } else if (role === Role.AGENT_ADMINISTRATIF) {
-            await tx.agentAdministratif.create({ data: { userId: user.id, name: firstName, surname: lastName }});
         }
         
         return user;
@@ -66,6 +64,7 @@ export async function POST(req: NextRequest) {
     await auth.setCustomUserClaims(uid, { role });
     console.log(`✅ [API/Register] Inscription réussie pour ${email}.`);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = newUser;
 
     return NextResponse.json({ user: safeUser as SafeUser }, { status: 201 });
