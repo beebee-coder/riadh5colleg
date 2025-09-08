@@ -10,9 +10,6 @@ import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { loginSchema } from '@/lib/formValidationSchemas';
 import SocialSignInButtons from './SocialSignInButtons';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useLoginMutation } from '@/lib/redux/api/authApi';
@@ -41,16 +38,7 @@ export default function LoginForm() {
     console.log("🔑 [LoginForm] Tentative de connexion soumise pour:", data.email);
     setIsFirebaseLoading(true);
     try {
-      const app = initializeFirebaseApp();
-      const auth = getAuth(app);
-      
-      console.log("🔥 [LoginForm] Connexion à Firebase avec email et mot de passe...");
-      const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
-      console.log("✅ [LoginForm] Succès de la connexion Firebase. Obtention du token ID...");
-      const idToken = await userCredential.user.getIdToken();
-
-      console.log("📡 [LoginForm] Envoi du token ID à notre API backend via la mutation RTK...");
-      await loginApi({ idToken }).unwrap();
+      await loginApi(data).unwrap();
       
       console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
       toast({

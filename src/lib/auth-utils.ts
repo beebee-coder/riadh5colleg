@@ -6,7 +6,6 @@ import { SESSION_COOKIE_NAME } from './constants';
 import { initializeFirebaseAdmin } from './firebase-admin';
 import type { SafeUser } from '@/types';
 import prisma from './prisma';
-import { Role } from '@/types';
 
 /**
  * Retrieves the server-side session by verifying the Firebase session cookie.
@@ -16,7 +15,7 @@ import { Role } from '@/types';
 export async function getServerSession(): Promise<{ user: SafeUser } | null> {
   console.log('--- 🍪 [Serveur] Tentative de récupération de la session ---');
   try {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionCookie) {

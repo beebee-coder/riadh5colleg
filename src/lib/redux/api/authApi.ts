@@ -53,29 +53,22 @@ export const authApi = createApi({
       }),
       invalidatesTags: ['Session'],
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log('📡 [AuthAPI] onQueryStarted for login. Waiting for custom token...');
+        console.log('📡 [AuthAPI] onQueryStarted pour login. En attente de la réponse...');
         try {
           const { data } = await queryFulfilled;
           const { user, token } = data;
           
-          console.log('✅ [AuthAPI] Custom token received. Signing in with Firebase client...');
-          const auth = getAuth(initializeFirebaseApp());
-          const userCredential = await signInWithCustomToken(auth, token);
+          if (token) {
+            console.log('✅ [AuthAPI] Jeton personnalisé reçu. Connexion avec le client Firebase...');
+            const auth = getAuth(initializeFirebaseApp());
+            await signInWithCustomToken(auth, token);
+          }
           
-          console.log('✅ [AuthAPI] Firebase client signed in. Fetching ID token...');
-          const idToken = await userCredential.user.getIdToken();
-
-          // Now, set the session cookie using a separate API call to a new endpoint
-          await fetch('/api/auth/set-session-cookie', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken }),
-          });
-
-          console.log('✅ [AuthAPI] Session cookie set. Dispatching setUser.');
+          console.log('✅ [AuthAPI] Connexion réussie. Dispatch de setUser:', user);
           dispatch(setUser(user));
+          
         } catch (error) {
-          console.error('❌ [AuthAPI] Login mutation failed.', JSON.stringify(error));
+          console.error('❌ [AuthAPI] Échec de la mutation de connexion.', JSON.stringify(error));
         }
       },
     }),
@@ -134,4 +127,3 @@ export const {
   useGetSessionQuery,
   useLogoutMutation,
 } = authApi;
-
