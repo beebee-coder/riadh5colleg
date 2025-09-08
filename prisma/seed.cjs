@@ -1,100 +1,109 @@
-// prisma/seed.cjs
 const { PrismaClient } = require('@prisma/client');
+const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin.cjs');
+const bcrypt = require('bcryptjs');
+
 const prisma = new PrismaClient();
 
+const usersToSeed = [
+  { email: 'admin@test.com', role: 'ADMIN', name: 'Admin User' },
+  { email: 'teacher@test.com', role: 'TEACHER', name: 'Teacher User' },
+  { email: 'agent@test.com', role: 'AGENT_ADMINISTRATIF', name: 'Agent User' },
+  { email: 'parent@test.com', role: 'PARENT', name: 'Parent User' },
+  { email: 'student@test.com', role: 'STUDENT', name: 'Student User' },
+];
+
 async function main() {
-  console.log("🌱 Démarrage du seeding de la base de données...");
+  console.log('🌱 Démarrage du script de seeding...');
+  const admin = await initializeFirebaseAdmin();
+  const auth = admin.auth();
 
-  // --- Niveaux (Grades) ---
-  console.log("Création des niveaux...");
-  const gradesData = [
-    { level: 7 }, { level: 8 }, { level: 9 },
-    { level: 1 }, { level: 2 }, { level: 3 }, { level: 4 }
-  ];
-  for (const data of gradesData) {
-    await prisma.grade.upsert({
-      where: { level: data.level },
-      update: {},
-      create: data,
-    });
-  }
-  const grades = await prisma.grade.findMany();
-  console.log(`${grades.length} niveaux créés.`);
+  for (const userData of usersToSeed) {
+    const { email, role, name } = userData;
+    const password = 'password123';
+    console.log(`--- Traitement de l'utilisateur : ${email} ---`);
 
-  // --- Salles (Classrooms) ---
-  console.log("Création des salles...");
-  const classroomsData = [
-    { name: 'Salle 101', capacity: 30, building: 'A' },
-    { name: 'Salle 102', capacity: 30, building: 'A' },
-    { name: 'Salle 201', capacity: 25, building: 'B' },
-    { name: 'Labo de Sciences', capacity: 20, building: 'C' },
-    { name: 'Salle d\'Informatique', capacity: 20, building: 'C' },
-  ];
-  for (const data of classroomsData) {
-    await prisma.classroom.upsert({
-      where: { name: data.name },
-      update: {},
-      create: data,
-    });
-  }
-  console.log(`${classroomsData.length} salles créées.`);
+    try {
+      let firebaseUser;
+      try {
+        // 1. Récupérer l'utilisateur depuis Firebase Auth
+        console.log(`[Firebase] Recherche de l'utilisateur ${email}...`);
+        firebaseUser = await auth.getUserByEmail(email);
+        console.log(`[Firebase] Utilisateur trouvé. UID: ${firebaseUser.uid}`);
+        // Mettre à jour le rôle si nécessaire
+        if (firebaseUser.customClaims?.role !== role) {
+          await auth.setCustomUserClaims(firebaseUser.uid, { role });
+          console.log(`[Firebase] Rôle mis à jour pour ${email} à ${role}.`);
+        }
+      } catch (error) {
+        if ((error as any).code === 'auth/user-not-found') {
+          console.log(`[Firebase] Utilisateur non trouvé. Création de ${email}...`);
+          firebaseUser = await auth.createUser({
+            email,
+            password,
+            displayName: name,
+            emailVerified: true,
+          });
+          await auth.setCustomUserClaims(firebaseUser.uid, { role });
+          console.log(`[Firebase] Utilisateur créé avec UID: ${firebaseUser.uid} et rôle: ${role}`);
+        } else {
+          throw error; // Relancer les autres erreurs Firebase
+        }
+      }
 
-  // --- Matières (Subjects) ---
-  console.log("Création des matières...");
-  const subjectsData = [
-    { name: 'Mathématiques', weeklyHours: 4, coefficient: 2 },
-    { name: 'Français', weeklyHours: 4, coefficient: 2 },
-    { name: 'Anglais', weeklyHours: 3, coefficient: 1 },
-    { name: 'Histoire-Géographie', weeklyHours: 3, coefficient: 1 },
-    { name: 'Sciences de la Vie et de la Terre', weeklyHours: 2, coefficient: 1 },
-    { name: 'Physique-Chimie', weeklyHours: 2, coefficient: 1, isOptional: false },
-    { name: 'Informatique', weeklyHours: 1, coefficient: 1, isOptional: false },
-    { name: 'Éducation Physique', weeklyHours: 2, coefficient: 1 },
-    { name: 'Arts Plastiques', weeklyHours: 1, coefficient: 1 },
-    { name: 'Allemand', isOptional: true, weeklyHours: 2, coefficient: 1 },
-    { name: 'Espagnol', isOptional: true, weeklyHours: 2, coefficient: 1 },
-  ];
-   for (const data of subjectsData) {
-    await prisma.subject.upsert({
-      where: { name: data.name },
-      update: {},
-      create: data,
-    });
-  }
-  console.log(`${subjectsData.length} matières créées.`);
+      const { uid } = firebaseUser;
+      const [firstName, ...lastNameParts] = name.split(' ');
+      const lastName = lastNameParts.join(' ') || '';
+      
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-  // --- Classes ---
-  console.log("Création des classes...");
-  const classesData = [
-    { name: '7ème Base 1', abbreviation: '7B1', gradeLevel: 7 },
-    { name: '7ème Base 2', abbreviation: '7B2', gradeLevel: 7 },
-    { name: '8ème Base 1', abbreviation: '8B1', gradeLevel: 8 },
-    { name: '9ème Base 1', abbreviation: '9B1', gradeLevel: 9 },
-  ];
-
-  for (const data of classesData) {
-    const grade = grades.find(g => g.level === data.gradeLevel);
-    if (grade) {
-      await prisma.class.upsert({
-        where: { name: data.name },
-        update: {},
+      // 2. Créer ou Mettre à jour l'utilisateur dans PostgreSQL avec l'UID de Firebase
+      console.log(`[Prisma] Upsert de l'utilisateur dans la base de données avec l'UID: ${uid}`);
+      const dbUser = await prisma.user.upsert({
+        where: { id: uid },
+        update: { role: role, name: name, firstName: firstName, lastName: lastName },
         create: {
-          name: data.name,
-          abbreviation: data.abbreviation,
-          gradeId: grade.id,
-          capacity: 28,
+          id: uid,
+          email,
+          username: email,
+          name,
+          firstName,
+          lastName,
+          password: hashedPassword,
+          role: role,
+          active: true,
         },
       });
+      console.log(`[Prisma] Utilisateur ${dbUser.email} synchronisé.`);
+
+      // 3. Créer le profil de rôle correspondant si nécessaire
+      if (role === 'ADMIN' && !(await prisma.admin.findUnique({ where: { userId: uid } }))) {
+        await prisma.admin.create({ data: { userId: uid, name: firstName, surname: lastName } });
+        console.log(`[Prisma] Profil Admin créé pour ${email}.`);
+      } else if (role === 'TEACHER' && !(await prisma.teacher.findUnique({ where: { userId: uid } }))) {
+        await prisma.teacher.create({ data: { userId: uid, name: firstName, surname: lastName } });
+        console.log(`[Prisma] Profil Teacher créé pour ${email}.`);
+      } else if (role === 'AGENT_ADMINISTRATIF' && !(await prisma.agentAdministratif.findUnique({ where: { userId: uid } }))) {
+        await prisma.agentAdministratif.create({ data: { userId: uid, name: firstName, surname: lastName } });
+        console.log(`[Prisma] Profil Agent Administratif créé pour ${email}.`);
+      } else if (role === 'PARENT' && !(await prisma.parent.findUnique({ where: { userId: uid } }))) {
+        await prisma.parent.create({ data: { userId: uid, name: firstName, surname: lastName, address: 'N/A' } });
+        console.log(`[Prisma] Profil Parent créé pour ${email}.`);
+      } else if (role === 'STUDENT' && !(await prisma.student.findUnique({ where: { userId: uid } }))) {
+        // La création d'étudiant nécessite plus d'infos (classe, parent, etc), donc nous créons un profil de base
+        await prisma.student.create({ data: { userId: uid, name: firstName, surname: lastName, address: 'N/A', bloodType: 'O+' } });
+        console.log(`[Prisma] Profil Student de base créé pour ${email}.`);
+      }
+    } catch (error) {
+      console.error(`❌ Échec du seeding pour l'utilisateur ${email}:`, error);
     }
   }
-  console.log(`${classesData.length} classes créées.`);
-  
-  console.log("✅ Seeding terminé avec succès.");
+
+  console.log('✅ Seeding terminé avec succès.');
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Erreur pendant le seeding:", e);
+    console.error('❌ Une erreur est survenue durant le seeding :', e);
     process.exit(1);
   })
   .finally(async () => {
