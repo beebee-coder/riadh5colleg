@@ -4,7 +4,7 @@
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useLoginMutation } from '@/lib/redux/api/authApi';
+import { useLoginMutation, useSocialLoginMutation } from '@/lib/redux/api/authApi';
 import { initializeFirebaseApp } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,6 +21,7 @@ export default function SocialSignInButtons() {
     const { toast } = useToast();
     const router = useRouter();
     const [loginApi, { isLoading }] = useLoginMutation();
+    const [socialLogin, { isLoading: isSocialLoading }] = useSocialLoginMutation();
 
     const handleGoogleSignIn = async () => {
         try {
@@ -30,6 +31,10 @@ export default function SocialSignInButtons() {
             const result = await signInWithPopup(auth, provider);
             const idToken = await result.user.getIdToken();
 
+            // Call the social login endpoint first to create the user if they don't exist
+            await socialLogin({ idToken }).unwrap();
+
+            // Then call the regular login endpoint to set the session cookie
             await loginApi({ idToken }).unwrap();
             
             toast({ title: "Connexion réussie", description: "Bienvenue !" });
@@ -67,9 +72,9 @@ export default function SocialSignInButtons() {
                 variant="outline"
                 className="w-full"
                 onClick={handleGoogleSignIn}
-                disabled={isLoading}
+                disabled={isLoading || isSocialLoading}
             >
-                {isLoading ? (
+                {(isLoading || isSocialLoading) ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                     <GoogleIcon className="mr-2 h-4 w-4" />
