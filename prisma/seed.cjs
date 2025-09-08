@@ -1,134 +1,135 @@
-const { PrismaClient, Role } = require('@prisma/client');
-const admin = require('firebase-admin');
-const bcrypt = require('bcryptjs');
+// prisma/seed.cjs
+const { PrismaClient, Role, UserSex } = require('@prisma/client');
+const { initializeFirebaseAdmin } = require('../src/lib/firebase-admin-seed');
 
-// Initialize Prisma Client
 const prisma = new PrismaClient();
 
-// Initialize Firebase Admin
-try {
-  console.log('🌱 [Seed] Initializing Firebase Admin...');
-  const serviceAccount = require('./school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-  console.log('🔥 [Firebase Admin] Admin SDK initialized successfully.');
-} catch (error) {
-  console.error('🔥 [Firebase Admin] Error initializing Admin SDK:', error.message);
-  if (error.code === 'MODULE_NOT_FOUND') {
-    console.error('🔥 [Firebase Admin] Please ensure the serviceAccountKey.json file is in the correct path.');
-  }
-  process.exit(1);
-}
-
-// Predefined users
-const users = [
-  { email: 'admin@test.com', password: 'password', role: Role.ADMIN, name: 'Admin', surname: 'User' },
-  { email: 'agent@test.com', password: 'password', role: Role.AGENT_ADMINISTRATIF, name: 'Agent', surname: 'Admin' },
-  { email: 'teacher@test.com', password: 'password', role: Role.TEACHER, name: 'Teacher', surname: 'User' },
-  { email: 'student@test.com', password: 'password', role: Role.STUDENT, name: 'Student', surname: 'User', address: '123 Main St', parentEmail: 'parent@test.com' },
-  { email: 'parent@test.com', password: 'password', role: Role.PARENT, name: 'Parent', surname: 'User', address: '123 Main St' },
-];
-
 async function main() {
-  console.log('🌱 [Seed] Starting the seeding process...');
+  console.log("🌱 Démarrage du seeding...");
 
-  for (const userData of users) {
-    const { email, password, role, name, surname, address, parentEmail } = userData;
+  // Initialiser Firebase Admin
+  const admin = await initializeFirebaseAdmin();
 
+  // Définir les données des utilisateurs de test
+  const usersToSeed = [
+    {
+      uid: 'seed_admin_01',
+      email: 'admin@test.com',
+      role: Role.ADMIN,
+      name: 'Admin User',
+    },
+    {
+      uid: 'seed_teacher_01',
+      email: 'teacher@test.com',
+      role: Role.TEACHER,
+      name: 'Teacher User',
+    },
+    {
+      uid: 'seed_student_01',
+      email: 'student@test.com',
+      role: Role.STUDENT,
+      name: 'Student User',
+    },
+    {
+      uid: 'seed_parent_01',
+      email: 'parent@test.com',
+      role: Role.PARENT,
+      name: 'Parent User',
+    },
+    {
+      uid: 'seed_agent_01',
+      email: 'agent@test.com',
+      role: Role.AGENT_ADMINISTRATIF,
+      name: 'Agent User',
+    }
+  ];
+
+  console.log('🔥 Vérification et création des utilisateurs dans Firebase Auth...');
+  for (const userData of usersToSeed) {
     try {
-      // Get or create Firebase user
-      let firebaseUser;
-      try {
-        firebaseUser = await admin.auth().getUserByEmail(email);
-        console.log(`🔍 [Seed] Firebase user found for ${email} (UID: ${firebaseUser.uid}). Updating role...`);
-        // Update user claims if they differ
-        if (firebaseUser.customClaims?.role !== role) {
-          await admin.auth().setCustomUserClaims(firebaseUser.uid, { role });
-        }
-      } catch (error) {
-        if (error.code === 'auth/user-not-found') {
-          console.log(`✨ [Seed] No Firebase user for ${email}. Creating one...`);
-          firebaseUser = await admin.auth().createUser({
-            email,
-            password,
-            emailVerified: true,
-          });
-          await admin.auth().setCustomUserClaims(firebaseUser.uid, { role });
-          console.log(`✅ [Seed] Firebase user created for ${email} (UID: ${firebaseUser.uid}).`);
-        } else {
-          throw error; // Re-throw other Firebase errors
-        }
-      }
-
-      // Upsert user in Prisma
-      console.log(`🔄 [Seed] Upserting user in Prisma for ${email}...`);
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const userPayload = {
-        id: firebaseUser.uid,
-        email,
-        username: email.split('@')[0],
-        password: hashedPassword,
-        name: `${name} ${surname}`,
-        role,
-        active: true,
-      };
-
-      // Role-specific data
-      let profileData = {};
-      if (role === Role.ADMIN) {
-        profileData = { admin: { create: { name, surname } } };
-      } else if (role === Role.AGENT_ADMINISTRATIF) {
-        profileData = { agent: { create: { name, surname } } };
-      } else if (role === Role.TEACHER) {
-        profileData = { teacher: { create: { name, surname } } };
-      } else if (role === Role.STUDENT) {
-        const parent = await prisma.user.findUnique({ where: { email: parentEmail } });
-        profileData = { student: { create: { name, surname, sex: 'MALE', address, parentId: parent.id } } };
-      } else if (role === Role.PARENT) {
-        profileData = { parent: { create: { name, surname, address } } };
-      }
-
-      await prisma.user.upsert({
-        where: { email },
-        update: userPayload,
-        create: { ...userPayload, ...profileData },
-      });
-
-      console.log(`✅ [Seed] Profile ${role} for ${email} synchronized.`);
+      await admin.auth().getUser(userData.uid);
+      console.log(`- L'utilisateur Firebase ${userData.email} (UID: ${userData.uid}) existe déjà.`);
     } catch (error) {
-      console.error(`❌ [Seed] Error processing user ${email}:`, error.message);
-      if (error.code === 'auth/email-already-exists') {
-        console.error(`
-          A user with this email may already exist in Firebase under a different UID. 
-          Consider deleting it from the Firebase console before re-running the seed.
-        `);
+      if (error.code === 'auth/user-not-found') {
+        await admin.auth().createUser({
+          uid: userData.uid,
+          email: userData.email,
+          password: 'password', // Mot de passe par défaut pour le seeding
+          emailVerified: true,
+          displayName: userData.name,
+        });
+        console.log(`- Utilisateur Firebase ${userData.email} (UID: ${userData.uid}) créé.`);
+      } else {
+        throw error;
       }
     }
   }
 
-  // Seeding Grades
-  console.log('🌱 [Seed] Creating Grades...');
-  const grades = [7, 8, 9];
-  for (const level of grades) {
-    await prisma.grade.upsert({
-      where: { level },
-      update: {},
-      create: { level },
+
+  console.log("🧹 Nettoyage des anciens utilisateurs de la base de données...");
+  await prisma.admin.deleteMany({});
+  await prisma.teacher.deleteMany({});
+  await prisma.student.deleteMany({});
+  await prisma.parent.deleteMany({});
+  await prisma.agentAdministratif.deleteMany({});
+  await prisma.user.deleteMany({
+    where: {
+      id: {
+        in: usersToSeed.map(u => u.uid)
+      }
+    }
+  });
+
+
+  console.log("👤 Création des utilisateurs dans la base de données PostgreSQL...");
+  for (const userData of usersToSeed) {
+     const [firstName, ...lastNameParts] = userData.name.split(' ');
+     const lastName = lastNameParts.join(' ') || '';
+
+    const createdUser = await prisma.user.create({
+      data: {
+        id: userData.uid, // Utiliser l'UID de Firebase comme ID dans la BDD
+        email: userData.email,
+        username: userData.email,
+        name: userData.name,
+        role: userData.role,
+        active: true,
+        // Pas de mot de passe stocké ici !
+      },
     });
-    console.log(`- Grade ${level} created/verified.`);
+    console.log(`- Utilisateur BDD créé : ${createdUser.email}`);
+
+    // Créer le profil de rôle correspondant
+    switch (userData.role) {
+      case Role.ADMIN:
+        await prisma.admin.create({ data: { userId: createdUser.id, name: firstName, surname: lastName } });
+        break;
+      case Role.TEACHER:
+        await prisma.teacher.create({ data: { userId: createdUser.id, name: firstName, surname: lastName } });
+        break;
+      case Role.PARENT:
+        await prisma.parent.create({ data: { userId: createdUser.id, name: firstName, surname: lastName, address: 'Adresse par défaut' } });
+        break;
+      case Role.STUDENT:
+        // Pour les étudiants, nous avons besoin de données supplémentaires (classe, parent, etc.)
+        // Pour ce seeding simple, nous créons juste le profil.
+        await prisma.student.create({ data: { userId: createdUser.id, name: firstName, surname: lastName, address: 'Adresse par défaut', birthday: new Date(), sex: UserSex.OTHER } });
+        break;
+      case Role.AGENT_ADMINISTRATIF:
+         await prisma.agentAdministratif.create({ data: { userId: createdUser.id, name: firstName, surname: lastName } });
+        break;
+    }
+     console.log(`- Profil ${userData.role} créé pour ${userData.email}`);
   }
 
-  console.log('🌱 [Seed] All seeding operations are complete.');
+  console.log("✅ Seeding terminé avec succès !");
 }
 
 main()
   .catch((e) => {
-    console.error('🔴 [Seed] A critical error occurred:', e);
+    console.error("❌ Une erreur est survenue pendant le seeding :", e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-    console.log('🔚 [Seed] Prisma client disconnected.');
   });
