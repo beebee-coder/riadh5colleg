@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const createClassroomSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
@@ -31,7 +31,7 @@ export async function GET() {
     if (error.stack) {
         console.error("Stack trace:", error.stack);
     }
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2021') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
       console.error('❌ GET /api/classrooms: The `Classroom` table does not exist. Please run `prisma migrate dev`.');
       return NextResponse.json({ message: 'Erreur serveur : La table pour les salles est introuvable. Veuillez exécuter les migrations de base de données.' }, { status: 500 });
     }

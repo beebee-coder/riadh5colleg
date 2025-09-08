@@ -1,2 +1,0 @@
-# simple-start
-# SimplePage225

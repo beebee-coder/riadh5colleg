@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    // temporary comment to force reload - 2
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,

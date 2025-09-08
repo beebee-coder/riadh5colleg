@@ -10,9 +10,10 @@ import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { loginSchema } from '@/lib/formValidationSchemas';
 import SocialSignInButtons from './SocialSignInButtons';
-
 import { useLoginMutation } from '@/lib/redux/api/authApi';
-import { useState } from 'react';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
+
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -33,20 +34,32 @@ export default function LoginForm() {
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     console.log("🔑 [LoginForm] Tentative de connexion soumise pour:", data.email);
     try {
-      await loginApi(data).unwrap();
+        const app = initializeFirebaseApp();
+        const auth = getAuth(app);
+        
+        console.log("🔥 [LoginForm] Connexion à Firebase avec email et mot de passe...");
+        const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+        console.log("✅ [LoginForm] Succès de la connexion Firebase. Obtention du token ID...");
+        const idToken = await userCredential.user.getIdToken();
+
+        console.log("📡 [LoginForm] Envoi du token ID à notre API backend via la mutation RTK...");
+        await loginApi({ idToken }).unwrap();
       
-      console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
-      toast({
-        title: "Connexion réussie!",
-        description: "Vous allez être redirigé vers votre tableau de bord."
-      });
+        console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
+        toast({
+            title: "Connexion réussie!",
+            description: "Vous allez être redirigé vers votre tableau de bord."
+        });
       
-      router.push('/dashboard');
-      router.refresh(); // Force a refresh to ensure the new session is picked up
+        router.push('/dashboard');
+        router.refresh();
 
     } catch (error: any) {
       console.error("❌ [LoginForm] Erreur de connexion:", JSON.stringify(error, null, 2));
-      const errorMessage = error.data?.message || "Une erreur inattendue est survenue. Veuillez réessayer.";
+      let errorMessage = "Une erreur inattendue est survenue. Veuillez réessayer.";
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          errorMessage = "Email ou mot de passe incorrect.";
+      }
       toast({
         variant: "destructive",
         title: "Échec de la connexion",

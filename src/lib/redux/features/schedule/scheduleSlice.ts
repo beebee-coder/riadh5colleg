@@ -1,8 +1,8 @@
 // src/lib/redux/features/schedule/scheduleSlice.ts
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { Day, Lesson as AppLesson, TeacherConstraint } from '@/types';
-import { findConflictingConstraint } from '@/lib/constraint-utils';
-import { timeToMinutes } from '@/lib/time-utils';
+// import { findConflictingConstraint } from '@/lib/constraint-utils';
+// import { timeToMinutes } from '@/lib/time-utils';
 
 // Use the main app Lesson type
 export type Lesson = AppLesson;

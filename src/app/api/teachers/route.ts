@@ -1,7 +1,7 @@
 // src/app/api/teachers/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma, Role, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { teacherSchema } from '@/lib/formValidationSchemas';
 import type { TeacherWithDetails } from '@/types';
 import type { User, Subject, Class, Teacher, Lesson } from '@prisma/client'; // Import necessary types
@@ -44,7 +44,7 @@ export async function GET() {
 
     return NextResponse.json(teachers);
   } catch (error: any) {
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2021') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
       return NextResponse.json({ message: "Erreur serveur : Une table requise pour les professeurs est introuvable. Veuillez exécuter les migrations de base de données." }, { status: 500 });
     }
     return NextResponse.json({ message: "Erreur lors de la récupération des professeurs", error: String(error) }, { status: 500 });
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("❌ POST /api/teachers: An error occurred in the handler:", error);
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
              return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
         }
@@ -77,12 +77,12 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: `Référence invalide pour ${field}. Assurez-vous que la valeur sélectionnée existe.`, code: error.code }, { status: 400 });
         }
         if (error.code === 'P2025') {
-             return NextResponse.json({ message: "Erreur lors de l'association des matières : une des matières sélectionnées n'existe pas.", details: (error as Error).message }, { status: 400 });
+             return NextResponse.json({ message: "Erreur lors de l'association des matières : une des matières sélectionnées n'existe pas.", details: error instanceof Error ? error.message : String(error) }, { status: 400 });
         }
     }
     if(error instanceof Error && error.stack) {
         console.error("Stack Trace:", error.stack);
     }
-    return NextResponse.json({ message: "Erreur interne du serveur lors de la création de l'enseignant.", error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: "Erreur interne du serveur lors de la création de l'enseignant.", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

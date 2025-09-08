@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const createClassSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
@@ -29,7 +29,7 @@ export async function GET() {
     if (error.stack) {
         console.error("Stack trace:", error.stack);
     }
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2021') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
       console.error('❌ GET /api/classes: The `Class` table does not exist. Please run `prisma migrate dev`.');
        return NextResponse.json({ message: 'Erreur serveur : La table pour les classes est introuvable. Veuillez exécuter les migrations de base de données.' }, { status: 500 });
     }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     if (!grade) {
       console.error(`❌ POST /api/classes: Invalid grade level provided: ${gradeLevel}`);
-      return NextResponse.json({ message: `Le niveau (grade) spécifié avec le niveau ${gradeLevel} n'existe pas.` }, { status: 400 });
+      return NextResponse.json({ message: `Le niveau (grade) spécifié avec le niveau ${gradeLevel} n\'existe pas.` }, { status: 400 });
     }
 
     const newClass = await prisma.class.create({
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       console.error('❌ POST /api/classes: Validation error:', error.errors);
       return NextResponse.json({ message: 'Données invalides', errors: error.errors }, { status: 400 });
     }
-     if (error instanceof PrismaClientKnownRequestError) {
+     if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2003') { // Foreign key constraint failed
              console.error('❌ POST /api/classes: Foreign key constraint failed:', error.meta);
              return NextResponse.json({ message: "Le niveau (grade) spécifié pour la classe n'existe pas." }, { status: 400 });

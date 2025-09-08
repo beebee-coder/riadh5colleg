@@ -29,7 +29,7 @@ export const classesSlice = createSlice({
     builder.addMatcher(
       entityApi.endpoints.getClasses.matchFulfilled,
       (state, { payload }) => {
-        state.items = payload as ClassWithGrade[];
+        state.items = payload as unknown as ClassWithGrade[];
         state.status = 'succeeded';
       }
     )

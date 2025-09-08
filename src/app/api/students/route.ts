@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { studentSchema } from '@/lib/formValidationSchemas';
-import { Role, UserSex, Prisma, PrismaClientKnownRequestError } from '@prisma/client'; // Import Prisma enums
+import { Role, UserSex, Prisma } from '@prisma/client'; // Import Prisma enums
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error creating student:', error);
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
         return NextResponse.json({ message: `A student with some of these details already exists. Details: ${error.meta?.target}` }, { status: 409 });
       }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error && error.message.includes("Invalid `prisma.user.create()` invocation")) {
         return NextResponse.json({ message: 'Failed to create user part of student profile. Check user fields.', error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ message: 'Error creating student', error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: 'Error creating student', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -59,6 +59,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(students, { status: 200 });
   } catch (error) {
     console.error('Error fetching students:', error);
-    return NextResponse.json({ message: 'Error fetching students', error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: 'Error fetching students', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

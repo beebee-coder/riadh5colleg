@@ -18,8 +18,7 @@ export interface SessionResponse {
 
 // --- Request Types ---
 export interface LoginRequest {
-  email: string;
-  password: string;
+  idToken: string;
 }
 
 export interface RegisterRequest {

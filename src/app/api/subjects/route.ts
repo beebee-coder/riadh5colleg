@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
-import { Prisma, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { subjectSchema } from '@/lib/formValidationSchemas';
 
 
@@ -20,7 +20,7 @@ export async function GET() {
         if (error.stack) {
             console.error("Stack trace:", error.stack);
         }
-        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2021') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
             console.error('❌ GET /api/subjects: The `Subject` table does not exist. Please run `prisma migrate dev`.');
             return NextResponse.json({ message: 'Erreur serveur : La table pour les matières est introuvable. Veuillez exécuter les migrations de base de données.' }, { status: 500 });
         }
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
             console.error('❌ POST /api/subjects: Validation error:', error.errors);
             return NextResponse.json({ message: 'Données invalides', errors: error.errors }, { status: 400 });
         }
-        if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
             console.error('❌ POST /api/subjects: Subject with this name already exists:', error);
             return NextResponse.json({ message: 'Une matière avec ce nom existe déjà.' }, { status: 409 });
         }

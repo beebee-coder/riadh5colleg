@@ -1,154 +1,134 @@
-const { PrismaClient, Role, UserSex } = require('@prisma/client');
+const { PrismaClient, Role } = require('@prisma/client');
+const admin = require('firebase-admin');
 const bcrypt = require('bcryptjs');
 
+// Initialize Prisma Client
 const prisma = new PrismaClient();
 
+// Initialize Firebase Admin
+try {
+  console.log('🌱 [Seed] Initializing Firebase Admin...');
+  const serviceAccount = require('./school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+  console.log('🔥 [Firebase Admin] Admin SDK initialized successfully.');
+} catch (error) {
+  console.error('🔥 [Firebase Admin] Error initializing Admin SDK:', error.message);
+  if (error.code === 'MODULE_NOT_FOUND') {
+    console.error('🔥 [Firebase Admin] Please ensure the serviceAccountKey.json file is in the correct path.');
+  }
+  process.exit(1);
+}
+
+// Predefined users
+const users = [
+  { email: 'admin@test.com', password: 'password', role: Role.ADMIN, name: 'Admin', surname: 'User' },
+  { email: 'agent@test.com', password: 'password', role: Role.AGENT_ADMINISTRATIF, name: 'Agent', surname: 'Admin' },
+  { email: 'teacher@test.com', password: 'password', role: Role.TEACHER, name: 'Teacher', surname: 'User' },
+  { email: 'student@test.com', password: 'password', role: Role.STUDENT, name: 'Student', surname: 'User', address: '123 Main St', parentEmail: 'parent@test.com' },
+  { email: 'parent@test.com', password: 'password', role: Role.PARENT, name: 'Parent', surname: 'User', address: '123 Main St' },
+];
+
 async function main() {
-  console.log('Start seeding...');
+  console.log('🌱 [Seed] Starting the seeding process...');
 
-  // --- Clean up existing data ---
-  console.log('Deleting existing data...');
-  // The order is important due to foreign key constraints
-  await prisma.teacherAssignment.deleteMany({});
-  await prisma.lessonRequirement.deleteMany({});
-  await prisma.subjectRequirement.deleteMany({});
-  await prisma.teacherConstraint.deleteMany({});
-  await prisma.result.deleteMany({});
-  await prisma.exam.deleteMany({});
-  await prisma.assignment.deleteMany({});
-  await prisma.lesson.deleteMany({});
-  await prisma.optionalSubjectGroup.deleteMany({});
-  await prisma.attendance.deleteMany({});
-  await prisma.announcement.deleteMany({});
-  await prisma.event.deleteMany({});
-  await prisma.student.deleteMany({});
-  await prisma.teacher.deleteMany({});
-  await prisma.parent.deleteMany({});
-  await prisma.agentAdministratif.deleteMany({});
-  await prisma.admin.deleteMany({});
-  await prisma.class.deleteMany({});
-  await prisma.subject.deleteMany({});
-  await prisma.grade.deleteMany({});
-  await prisma.user.deleteMany({});
-  console.log('Existing data deleted.');
+  for (const userData of users) {
+    const { email, password, role, name, surname, address, parentEmail } = userData;
 
-  // --- Hashed Password ---
-  const salt = bcrypt.genSaltSync(10);
-  const hashedPassword = bcrypt.hashSync('password', salt);
+    try {
+      // Get or create Firebase user
+      let firebaseUser;
+      try {
+        firebaseUser = await admin.auth().getUserByEmail(email);
+        console.log(`🔍 [Seed] Firebase user found for ${email} (UID: ${firebaseUser.uid}). Updating role...`);
+        // Update user claims if they differ
+        if (firebaseUser.customClaims?.role !== role) {
+          await admin.auth().setCustomUserClaims(firebaseUser.uid, { role });
+        }
+      } catch (error) {
+        if (error.code === 'auth/user-not-found') {
+          console.log(`✨ [Seed] No Firebase user for ${email}. Creating one...`);
+          firebaseUser = await admin.auth().createUser({
+            email,
+            password,
+            emailVerified: true,
+          });
+          await admin.auth().setCustomUserClaims(firebaseUser.uid, { role });
+          console.log(`✅ [Seed] Firebase user created for ${email} (UID: ${firebaseUser.uid}).`);
+        } else {
+          throw error; // Re-throw other Firebase errors
+        }
+      }
 
-  // --- Create Users with Hashed Passwords ---
-  console.log('Creating users...');
+      // Upsert user in Prisma
+      console.log(`🔄 [Seed] Upserting user in Prisma for ${email}...`);
+      const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Admin User
-  await prisma.user.create({
-    data: {
-      id: 'clwtrd1230000_admin_seed',
-      email: 'admin@test.com',
-      username: 'admin',
-      name: 'Admin User',
-      password: hashedPassword,
-      role: Role.ADMIN,
-      active: true,
-      admin: {
-        create: {
-          name: 'Admin',
-          surname: 'User',
-        },
-      },
-    },
-  });
+      const userPayload = {
+        id: firebaseUser.uid,
+        email,
+        username: email.split('@')[0],
+        password: hashedPassword,
+        name: `${name} ${surname}`,
+        role,
+        active: true,
+      };
 
-  // Agent Administratif User
-  await prisma.user.create({
-    data: {
-      id: 'clwtrd1230000_agent_seed',
-      email: 'agent@test.com',
-      username: 'agent',
-      name: 'Agent Admin',
-      password: hashedPassword,
-      role: Role.AGENT_ADMINISTRATIF,
-      active: true,
-      agentAdministratif: {
-        create: {
-          name: 'Agent',
-          surname: 'Admin',
-        },
-      },
-    },
-  });
+      // Role-specific data
+      let profileData = {};
+      if (role === Role.ADMIN) {
+        profileData = { admin: { create: { name, surname } } };
+      } else if (role === Role.AGENT_ADMINISTRATIF) {
+        profileData = { agent: { create: { name, surname } } };
+      } else if (role === Role.TEACHER) {
+        profileData = { teacher: { create: { name, surname } } };
+      } else if (role === Role.STUDENT) {
+        const parent = await prisma.user.findUnique({ where: { email: parentEmail } });
+        profileData = { student: { create: { name, surname, sex: 'MALE', address, parentId: parent.id } } };
+      } else if (role === Role.PARENT) {
+        profileData = { parent: { create: { name, surname, address } } };
+      }
 
-  // Teacher User
-  await prisma.user.create({
-    data: {
-      id: 'clwtrd1230000_teacher_seed',
-      email: 'teacher@test.com',
-      username: 'teacher',
-      name: 'Teacher User',
-      password: hashedPassword,
-      role: Role.TEACHER,
-      active: true,
-      teacher: {
-        create: {
-          name: 'Teacher',
-          surname: 'User',
-        },
-      },
-    },
-  });
-  
-  // Parent User
-  const parentUser = await prisma.user.create({
-    data: {
-      id: 'clwtrd1230000_parent_seed',
-      email: 'parent@test.com',
-      username: 'parent',
-      name: 'Parent User',
-      password: hashedPassword,
-      role: Role.PARENT,
-      active: true,
-      parent: {
-        create: {
-          name: 'Parent',
-          surname: 'User',
-          address: '123 Test Street'
-        },
-      },
-    },
-  });
+      await prisma.user.upsert({
+        where: { email },
+        update: userPayload,
+        create: { ...userPayload, ...profileData },
+      });
 
-  // Student User
-   await prisma.user.create({
-    data: {
-      id: 'clwtrd1230000_student_seed',
-      email: 'student@test.com',
-      username: 'student',
-      name: 'Student User',
-      password: hashedPassword,
-      role: Role.STUDENT,
-      active: true,
-      student: {
-        create: {
-          name: 'Student',
-          surname: 'User',
-          sex: UserSex.MALE,
-          birthday: new Date('2010-05-20T00:00:00.000Z'),
-          bloodType: 'O+',
-          address: '123 Test Street',
-          parent: { connect: { userId: parentUser.id } }
-        },
-      },
-    },
-  });
-  
-  console.log('Users created successfully.');
-  console.log('Seeding finished.');
+      console.log(`✅ [Seed] Profile ${role} for ${email} synchronized.`);
+    } catch (error) {
+      console.error(`❌ [Seed] Error processing user ${email}:`, error.message);
+      if (error.code === 'auth/email-already-exists') {
+        console.error(`
+          A user with this email may already exist in Firebase under a different UID. 
+          Consider deleting it from the Firebase console before re-running the seed.
+        `);
+      }
+    }
+  }
+
+  // Seeding Grades
+  console.log('🌱 [Seed] Creating Grades...');
+  const grades = [7, 8, 9];
+  for (const level of grades) {
+    await prisma.grade.upsert({
+      where: { level },
+      update: {},
+      create: { level },
+    });
+    console.log(`- Grade ${level} created/verified.`);
+  }
+
+  console.log('🌱 [Seed] All seeding operations are complete.');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('🔴 [Seed] A critical error occurred:', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
+    console.log('🔚 [Seed] Prisma client disconnected.');
   });

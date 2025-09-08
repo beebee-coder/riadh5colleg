@@ -1,11 +1,11 @@
 // src/app/api/parents/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma, Role, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 // GET a single parent
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const parent = await prisma.parent.findUnique({
       where: { id },
@@ -30,13 +30,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(parent, { status: 200 });
   } catch (error) {
     console.error(`[API GET /parents/:id] Erreur lors de la récupération du parent ${id}:`, error);
-    return NextResponse.json({ message: "Erreur lors de la récupération du parent", error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: "Erreur lors de la récupération du parent", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
 // PUT (update) a parent
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-    const { id } = params;
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     try {
         if (!id || typeof id !== 'string') {
             return NextResponse.json({ message: 'Invalid parent ID' }, { status: 400 });
@@ -87,18 +87,18 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     } catch (error) {
         console.error(`[API PUT /parents/:id] Erreur:`, error);
-        if (error instanceof PrismaClientKnownRequestError) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {
                 return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
             }
         }
-        return NextResponse.json({ message: 'Erreur interne du serveur.', error: (error as Error).message }, { status: 500 });
+        return NextResponse.json({ message: 'Erreur interne du serveur.', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
 }
 
 // DELETE a parent
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id:string }> }) {
+  const { id } = await params;
   if (!id || typeof id !== 'string') {
       return NextResponse.json({ message: 'Invalid parent ID' }, { status: 400 });
   }
@@ -146,7 +146,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ message: 'Parent supprimé avec succès' }, { status: 200 });
   } catch (error) {
     console.error(`[API DELETE /parents/:id] Erreur:`, error);
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') { // "Record to delete not found."
         return NextResponse.json({ message: 'Parent non trouvé pour la suppression.' }, { status: 404 });
       }
@@ -154,6 +154,6 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
      if (error instanceof Error && error.message === "Parent non trouvé") {
         return NextResponse.json({ message: 'Parent non trouvé pour la suppression.' }, { status: 404 });
     }
-    return NextResponse.json({ message: "Une erreur s'est produite lors de la suppression.", error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: "Une erreur s'est produite lors de la suppression.", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

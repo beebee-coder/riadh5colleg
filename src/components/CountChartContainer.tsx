@@ -2,22 +2,14 @@
 import Image from "next/image";
 import CountChart from "./CountChart";
 import prisma from "@/lib/prisma";
-import { UserSex } from "@/types/index"; 
+import { UserSex } from "@prisma/client"; 
 import * as paths from "@/lib/image-paths";
-
-// Définir un type pour le résultat de la requête groupBy de Prisma
-type GroupedBySexData = {
-    sex: UserSex;
-    _count: {
-        _all: number;
-    };
-}[];
 
 const CountChartContainer = async () => {
   console.log("♂️♀️ [CountChartContainer] Récupération du nombre d'étudiants par sexe.");
   let boys = 0, girls = 0;
   try {
-    const data: GroupedBySexData = await prisma.student.groupBy({
+    const data = await prisma.student.groupBy({
       by: ['sex'],
       _count: {
         _all: true,

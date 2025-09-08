@@ -1,7 +1,7 @@
 // src/app/api/parents/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Prisma, Role, PrismaClientKnownRequestError } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { parentSchema } from '@/lib/formValidationSchemas';
 
 // POST (create) a new parent
@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Erreur lors de la création du parent :', error);
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ message: "Un utilisateur avec cet email ou nom d'utilisateur existe déjà." }, { status: 409 });
     }
-    return NextResponse.json({ message: 'Erreur interne du serveur.', error: (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: 'Erreur interne du serveur.', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
