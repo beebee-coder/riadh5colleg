@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
 import { removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice'; // Importer AppNotification
-import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/slices/authSlice';
 import { Role, type SafeUser } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
