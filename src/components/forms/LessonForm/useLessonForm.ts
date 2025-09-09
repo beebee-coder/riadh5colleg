@@ -27,6 +27,7 @@ const useLessonForm = ({
       ...data,
       startTime: formatTime(data.startTime),
       endTime: formatTime(data.endTime),
+      classId: data.classId ?? undefined, // Convert null to undefined
       classroomId: data.classroomId ?? undefined,
     } : {
       name: '',
