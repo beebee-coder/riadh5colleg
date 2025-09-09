@@ -16,6 +16,7 @@ import reportReducer from './slices/reportSlice';
 import wizardReducer from './features/wizardSlice';
 import schoolConfigReducer from './features/schoolConfigSlice';
 import classesReducer from './features/classes/classesSlice';
+import classReducer from './slices/class-slice'; // Import the new slice reducer
 import subjectsReducer from './features/subjects/subjectsSlice';
 import teachersReducer from './features/teachers/teachersSlice';
 import studentsReducer from './features/students/studentsSlice';
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   wizard: wizardReducer,
   schoolConfig: schoolConfigReducer,
   classes: classesReducer,
+  class: classReducer, // Add the new slice reducer
   subjects: subjectsReducer,
   teachers: teachersReducer,
   students: studentsReducer,
