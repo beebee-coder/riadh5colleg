@@ -29,7 +29,6 @@ import scheduleReducer from './features/schedule/scheduleSlice';
 import scheduleDraftReducer from './features/scheduleDraftSlice';
 import attendanceReducer from './features/attendance/attendanceSlice';
 
-
 const rootReducer = combineReducers({
   auth: authReducer,
   session: sessionReducer,
@@ -69,7 +68,6 @@ export const store = configureStore({
         // Ignore these paths in the state
         ignoredPaths: ['session.activeSession'],
       },
-      immutableCheck: false,
     }).concat(
       authApi.middleware,
       entityApi.middleware,
