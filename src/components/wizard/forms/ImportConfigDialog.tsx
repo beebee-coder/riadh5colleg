@@ -94,8 +94,8 @@ export const ImportConfigDialog: React.FC<ImportConfigDialogProps> = ({ grades }
                 weeklyHours: item.weeklyHours,
                 coefficient: item.coefficient,
                 requiresRoom: false,
-                isOptional: false
-                
+                isOptional: false,
+                optionalGroupId: null, // Add missing property
               }));
               dispatch(setAllSubjects(subjects));
               toast({ title: "Succès", description: `${subjects.length} matières importées.` });
