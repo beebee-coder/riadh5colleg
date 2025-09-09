@@ -102,7 +102,7 @@ export default function DashboardPage() {
         toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
         router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {
-        throw new Error((resultAction.payload as string) || 'Failed to start session');
+        throw new Error((resultAction.payload as any)?.message || 'Failed to start session');
       }
     } catch (error: any) {
         toast({

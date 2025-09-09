@@ -27,7 +27,15 @@ export const timerReducers = {
       state.activeSession.classTimer = null;
     }
   },
-  // Remplacé par setTimerRemaining pour éviter les problèmes d'importation
+  timerTick: (state: SessionState) => {
+    if (state.activeSession?.classTimer && state.activeSession.classTimer.isActive) {
+      if (state.activeSession.classTimer.remaining > 0) {
+        state.activeSession.classTimer.remaining--;
+      } else {
+        state.activeSession.classTimer.isActive = false;
+      }
+    }
+  },
   setTimerRemaining: (state: SessionState, action: PayloadAction<number>) => {
     if (state.activeSession?.classTimer) {
       state.activeSession.classTimer.remaining = action.payload;
