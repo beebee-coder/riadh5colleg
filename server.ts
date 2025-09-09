@@ -1,4 +1,3 @@
-
 // server.ts
 import { createServer } from 'http';
 import { parse } from 'url';
@@ -10,7 +9,6 @@ const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
 const port = parseInt(process.env.PORT || '3000', 10);
 
-// when using middleware `hostname` and `port` must be provided below
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -29,7 +27,13 @@ app.prepare().then(() => {
     }
   });
 
-  const io = new Server(httpServer);
+  // Correctly configure Socket.IO CORS
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*", // Allow all origins
+      methods: ["GET", "POST"]
+    }
+  });
 
   const broadcastPresence = () => {
     const userIds = Array.from(onlineUsers.values());
