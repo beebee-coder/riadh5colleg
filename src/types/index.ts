@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 
 // --- ENUMS (Single Source of Truth) ---
@@ -92,7 +93,7 @@ export type Event = PrismaEvent;
 export type Result = PrismaResult;
 export type LessonRequirement = Omit<PrismaLessonRequirement, 'id' | 'scheduleDraftId'> & { id?: number; scheduleDraftId: string | null };
 export type SubjectRequirement = Omit<PrismaSubjectRequirement, 'allowedRoomIds' | 'scheduleDraftId'> & { allowedRoomIds: number[]; scheduleDraftId: string | null };
-export type TeacherConstraint = Omit<PrismaTeacherConstraint, 'id'> & { id: string | number };
+export type TeacherConstraint = Omit<PrismaTeacherConstraint, 'id' | 'scheduleDraftId'> & { id: string | number; scheduleDraftId: string | null };
 export type ClassAssignment = PrismaClassAssignment;
 
 export type TeacherAssignment = Omit<PrismaTeacherAssignment, 'classAssignments'> & {classIds: number[], classAssignments: ClassAssignment[]};
