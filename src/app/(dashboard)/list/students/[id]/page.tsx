@@ -10,7 +10,7 @@ import StudentProfileCard from "@/components/student/StudentProfileCard";
 import StudentStatsCards from "@/components/student/StudentStatsCards";
 import StudentShortcuts from "@/components/student/StudentShortcuts";
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import type { StudentWithDetails, WizardData, Lesson, ClassWithGrade, TeacherWithDetails, Subject, Classroom } from "@/types/index";
 
