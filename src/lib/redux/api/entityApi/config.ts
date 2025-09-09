@@ -4,10 +4,9 @@ import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' | 'parent' | 'lesson' | 'exam' | 'assignment' | 'event' | 'announcement' | 'result' | 'attendance' | 'quiz' | 'classroom';
 
 // Centralized base query to include credentials in every request
-// and use an absolute URL to avoid proxy issues in some environments.
-// It uses NEXT_PUBLIC_APP_URL in production/preview and a relative path for local development.
+// and use a relative path, which is the most robust default for Next.js.
 export const baseQueryWithCredentials = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_APP_URL || '/',
+  baseUrl: '/',
   credentials: 'include',
 });
 
