@@ -40,7 +40,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     console.log(`🔌 [SocketProvider] Initializing socket connection to the custom server for user ${user.id}`);
 
     // The path is not needed anymore as we are connecting to the root server
-    socketRef.current = io({
+    socketRef.current = io('http://localhost:3000', {
       transports: ['websocket', 'polling'],
       auth: {
         userId: user.id,
