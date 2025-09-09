@@ -8,7 +8,7 @@ import { endSession, fetchSessionState } from '@/lib/redux/slices/sessionSlice';
 import { addSessionReportFromActiveSession } from '@/lib/redux/slices/reportSlice';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
-import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
+import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import Link from 'next/link';
