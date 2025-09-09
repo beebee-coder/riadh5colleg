@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 
 // --- ENUMS (Single Source of Truth) ---
@@ -312,6 +311,15 @@ export interface SubjectFormReturn {
   setValue: UseFormSetValue<SubjectSchema>;
   selectedTeachers: string[];
   onSubmit: SubmitHandler<SubjectSchema>;
+}
+
+export interface FormContainerProps {
+  table: EntityType;
+  type: 'create' | 'update' | 'delete';
+  data?: any;
+  id?: string | number;
+  className?: string;
+  relatedData?: any;
 }
 
 
