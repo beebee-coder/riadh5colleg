@@ -2,7 +2,7 @@
 import prisma from '@/lib/prisma';
 import ShuddlePageClient from '@/components/wizard/ShuddlePageClient';
 import type { WizardData } from '@/types';
-import { fetchAllDataForWizard } from '@/lib/data-fetching/fetch-wizard-data';
+import { fetchAllDataForWizard } from '@/lib/data-fetching';
 
 export default async function ShuddlePage() {
     console.log("🗓️ [ShuddlePage] Début du rendu côté serveur. Récupération des données initiales du planificateur.");
