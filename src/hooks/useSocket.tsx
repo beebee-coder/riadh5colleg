@@ -37,8 +37,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     // Connect to the custom server, which will be the same origin as the web page.
     console.log(`🔌 [SocketProvider] Initializing socket connection for user ${user.id}`);
 
-    // The path is not needed anymore as we are connecting to the root server
-    socketRef.current = io({ // Connect to the same server that serves the page
+    // Explicitly set the path for the socket connection to ensure reliability.
+    socketRef.current = io({ 
+      path: '/api/socket',
       transports: ['websocket', 'polling'],
       auth: {
         userId: user.id,
