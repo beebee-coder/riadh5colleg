@@ -1,3 +1,4 @@
+//src/components/fors/ParentForm/FormFields.tsx
 import InputField from "@/components/InputField";
 import ImageUpload from "./ImageUpload";
 import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form"; // Import UseFormSetValue
@@ -7,7 +8,7 @@ interface FormFieldsProps {
   register: UseFormRegister<ParentSchema>;
   errors: FieldErrors<ParentSchema>;
   isLoading: boolean;
-  setValue: any; // Using `any` to resolve complex generic type conflicts
+  setValue: UseFormSetValue<ParentSchema>;
   imgPreview: string | null | undefined;
   type: 'create' | 'update';
 }
