@@ -127,7 +127,7 @@
 }
 
 .button:hover .text {
-  text-shadow: 0.025em 0.025em 0.05em rgba(0, 0, 0, 0.12);
+  text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.12);
 }
 
 /* Text Highlight */

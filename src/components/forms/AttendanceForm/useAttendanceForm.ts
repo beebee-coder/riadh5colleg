@@ -1,22 +1,18 @@
-// src/components/forms/AttendanceForm/useAttendanceForm.ts
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type SubmitHandler, UseFormHandleSubmit, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "@/lib/redux/api/entityApi/index";
-import { attendanceSchema } from "@/lib/formValidationSchemas";
-import type { AttendanceSchema } from "@/types/schemas";
-import type { AttendanceFormProps } from "../types";
-import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { SerializedError } from "@reduxjs/toolkit";
-
+import { attendanceSchema, type AttendanceSchema } from "@/lib/formValidationSchemas";
+import type { AttendanceFormProps, AttendanceFormReturn } from "./types";
 
 const useAttendanceForm = ({
   type,
   data,
   setOpen,
-}: Pick<AttendanceFormProps, 'type' | 'data' | 'setOpen'> & { relatedData?: any }) => {
+  relatedData,
+}: AttendanceFormProps): AttendanceFormReturn => {
   const {
     register,
     handleSubmit,
@@ -36,6 +32,7 @@ const useAttendanceForm = ({
   });
 
   const isPresent = watch("present");
+
   const router = useRouter();
   const [createAttendance, { 
     isLoading: isCreating, 
@@ -53,7 +50,7 @@ const useAttendanceForm = ({
 
   const isLoading = isCreating || isUpdating;
 
-  const onSubmit: SubmitHandler<AttendanceSchema> = async (formData) => {
+  const onSubmit = handleSubmit(async (formData) => {
     try {
       if (type === "create") {
         await createAttendance(formData).unwrap();
@@ -63,7 +60,7 @@ const useAttendanceForm = ({
     } catch (err) {
       // Error is handled by useEffect below
     }
-  };
+  });
 
   useEffect(() => {
     if (createSuccess || updateSuccess) {
@@ -75,9 +72,7 @@ const useAttendanceForm = ({
   }, [createSuccess, updateSuccess, type, setOpen, reset, router]);
 
   useEffect(() => {
-    const error: FetchBaseQueryError | SerializedError | undefined = 
-    (createErrorData as FetchBaseQueryError | SerializedError | undefined) ||
-    (updateErrorData as FetchBaseQueryError | SerializedError | undefined);
+    const error = createErrorData || updateErrorData;
     if (error && Object.keys(error).length > 0) {
       const errorMessage = (error as any)?.data?.message || "Une erreur inattendue s'est produite.";
       toast({ variant: "destructive", title: "Échec de l'opération", description: errorMessage });
@@ -87,15 +82,15 @@ const useAttendanceForm = ({
   return {
     register,
     handleSubmit,
-    onSubmit,
     errors,
     isLoading,
     isPresent,
+    onSubmit,
     setValue,
     createIsError,
     updateIsError,
-    createErrorData: createErrorData as FetchBaseQueryError | SerializedError | undefined,
-    updateErrorData: updateErrorData as FetchBaseQueryError | SerializedError | undefined,
+    createErrorData,
+    updateErrorData,
   };
 };
 

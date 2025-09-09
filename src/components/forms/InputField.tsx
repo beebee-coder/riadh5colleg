@@ -1,41 +1,39 @@
-// src/components/forms/InputField.tsx
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import FormError from './FormError';
-import type { FieldError, FieldValues, UseFormRegister, Path } from "react-hook-form";
+import FormError from "./FormError";
+import type { FieldError, FieldValues, UseFormRegister } from "react-hook-form";
 
-type InputFieldProps<T extends FieldValues> = {
+type InputFieldProps = {
   label: string;
   type?: string;
-  register: UseFormRegister<T>;
-  name: Path<T>;
+  register: UseFormRegister<FieldValues>;
+  name: string;
+  defaultValue?: string;
   error?: FieldError;
   hidden?: boolean;
-  disabled?: boolean;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'name'>;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  disabled?: boolean | undefined
+};
 
-const InputField = <T extends FieldValues>({
+const InputField = ({
   label,
   type = "text",
   register,
   name,
+  defaultValue,
   error,
   hidden,
+  inputProps,
   disabled,
-  className,
-  ...props
-}: InputFieldProps<T>) => {
+}: InputFieldProps) => {
   return (
-    <div className={hidden ? "hidden" : "grid w-full items-center gap-1.5"}>
-      <Label htmlFor={name}>{label}</Label>
-      <Input
-        id={name}
+    <div className={hidden ? "hidden" : "flex flex-col gap-2 w-full"}>
+      <label className="text-xs text-gray-500">{label}</label>
+      <input
         type={type}
         {...register(name)}
-        disabled={disabled}
-        aria-invalid={error ? "true" : "false"}
-        className={className}
-        {...props}
+        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+        {...inputProps}
+        defaultValue={defaultValue}
+        disabled={disabled} // Pass disabled to the input
       />
       <FormError error={error} />
     </div>

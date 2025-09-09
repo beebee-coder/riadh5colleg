@@ -1,14 +1,10 @@
-// src/components/forms/AssignmentForm/FormFields.tsx
-import InputField from "@/components/forms/InputField";
-import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import type { AssignmentSchema } from "@/types/schemas";
-import type { Lesson } from "@/types";
+import InputField from "@/components/InputField";
 
 interface FormFieldsProps {
-  register: UseFormRegister<AssignmentSchema>;
-  errors: FieldErrors<AssignmentSchema>;
+  register: any;
+  errors: any;
   isLoading: boolean;
-  lessons: Pick<Lesson, 'id' | 'name'>[];
+  lessons: { id: number; name: string }[];
 }
 
 const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) => {
@@ -17,7 +13,7 @@ const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) =
       <InputField
         label="Titre du Devoir"
         name="title"
-        register={register as any}
+        register={register}
         error={errors?.title}
         disabled={isLoading}
       />
@@ -25,7 +21,7 @@ const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) =
         label="Date de Début"
         name="startDate"
         type="datetime-local"
-        register={register as any}
+        register={register}
         error={errors?.startDate}
         disabled={isLoading}
       />
@@ -33,7 +29,7 @@ const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) =
         label="Date Limite"
         name="dueDate"
         type="datetime-local"
-        register={register as any}
+        register={register}
         error={errors?.dueDate}
         disabled={isLoading}
       />
@@ -46,7 +42,7 @@ const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) =
         >
           <option value="">Sélectionner un cours</option>
           {lessons.map((lesson) => (
-            <option value={String(lesson.id)} key={lesson.id}>
+            <option value={lesson.id} key={lesson.id}>
               {lesson.name}
             </option>
           ))}

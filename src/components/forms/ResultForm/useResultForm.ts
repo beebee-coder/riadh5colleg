@@ -1,4 +1,4 @@
-// src/components/forms/ResultForm/useResultForm.ts
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler, UseFormHandleSubmit, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { useEffect, useState } from "react";

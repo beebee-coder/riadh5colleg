@@ -1,2 +1,2 @@
-// This file is obsolete and will be removed.
-export {};
+export { default } from "./AttendanceForm";
+export type { AttendanceFormProps } from "./types";

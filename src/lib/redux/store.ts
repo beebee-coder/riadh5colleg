@@ -1,10 +1,11 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
+import { TypedUseSelectorHook, useSelector } from 'react-redux';
 
 // APIs
 import { authApi } from './api/authApi';
-import { entityApi } from './api/entityApi/index';
+import { entityApi } from './api/entityApi';
 import { draftApi } from './api/draftApi';
 
 // Slices
@@ -93,4 +94,5 @@ setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export type AppStore = typeof store;

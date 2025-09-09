@@ -5,7 +5,15 @@ import type { SafeUser, Role } from '@/types/index';
 
 // --- Response Types ---
 export interface AuthResponse {
-  user: SafeUser;
+  status: 'success' | 'requires-2fa';
+  message: string;
+  user?: SafeUser;
+  tempToken?: string;
+}
+
+export interface SocialAuthResponse {
+    user: SafeUser;
+    isNewUser: boolean;
 }
 
 export interface LogoutResponse {
@@ -21,12 +29,19 @@ export interface LoginRequest {
   idToken: string;
 }
 
-// La requête d'inscription n'inclut plus le mot de passe, mais l'UID de Firebase
 export interface RegisterRequest {
-  uid: string;
-  email: string;
-  name: string;
+  idToken: string;
   role: Role;
+  name: string;
+}
+
+export interface SocialLoginRequest {
+    idToken: string;
+}
+
+export interface Verify2FARequest {
+    tempToken: string;
+    code: string;
 }
 
 
@@ -64,6 +79,22 @@ export const authApi = createApi({
         method: 'POST',
         body: userInfo,
       }),
+    }),
+    socialLogin: builder.mutation<SocialAuthResponse, SocialLoginRequest>({
+        query: (credentials) => ({
+            url: 'social-login',
+            method: 'POST',
+            body: credentials,
+        }),
+        invalidatesTags: ['Session'],
+    }),
+    verify2FA: builder.mutation<AuthResponse, Verify2FARequest>({
+      query: (body) => ({
+        url: 'verify-2fa',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Session'],
     }),
     getSession: builder.query<SessionResponse, void>({
       query: () => 'session',
@@ -112,4 +143,6 @@ export const {
   useRegisterMutation,
   useGetSessionQuery,
   useLogoutMutation,
+  useSocialLoginMutation,
+  useVerify2FAMutation,
 } = authApi;

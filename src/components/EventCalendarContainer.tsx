@@ -86,7 +86,7 @@ const EventCalendarContainer = ({ date, events = [], eventDates = [] }: EventCal
         {eventsForDay.length > 0 ? (
           eventsForDay.map((event) => (
             <div
-              className="p-3 rounded-md border-2 border-gray-100 border-t-4 odd:border-t-sky-500 even:border-t-purple-500 bg-card"
+              className="p-3 rounded-md border-2 border-gray-100 border-t-4 odd:border-t-lamaSky even:border-t-lamaPurple bg-card"
               key={event.id}
             >
               <div className="flex items-center justify-between">

@@ -2,7 +2,7 @@
 import Image from "next/image";
 import CountChart from "./CountChart";
 import prisma from "@/lib/prisma";
-import { UserSex } from "@prisma/client"; 
+import { UserSex } from "@/types/index"; 
 import * as paths from "@/lib/image-paths";
 
 const CountChartContainer = async () => {

@@ -30,7 +30,7 @@ const Announcements: React.FC<AnnouncementsProps> = ({ initialAnnouncements }) =
       <div className="flex-grow mt-4 pr-2 overflow-y-auto min-h-0">
         <div className="flex flex-col gap-4">
           {initialAnnouncements.map((announcement, index) => {
-            const cardColors = ["bg-sky-100", "bg-purple-100", "bg-yellow-100"];
+            const cardColors = ["bg-lamaSkyLight", "bg-lamaPurpleLight", "bg-lamaYellowLight"];
             const cardColor = cardColors[index % cardColors.length];
 
             let content;

@@ -21,7 +21,7 @@ import {
   useDeleteResultMutation,
   useDeleteAttendanceMutation,
   useDeleteGradeMutation,
-} from "./lib/redux/api/entityApi/";
+} from "../lib/redux/api/entityApi/";
 import { Plus, Pencil, Trash2, X as CloseIcon } from 'lucide-react';
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
@@ -32,12 +32,12 @@ const StudentForm = dynamic(() => import("./forms/StudentForm/StudentForm"), { l
 const SubjectForm = dynamic(() => import("./forms/SubjectForm/SubjectForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const ClassForm = dynamic(() => import("./forms/ClassForm/ClassForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const ExamForm = dynamic(() => import("./forms/ExamForm"), { loading: () => <p>Chargement du formulaire...</p> });
-const AssignmentForm = dynamic(() => import("./forms/AssignmentForm"), { loading: () => <p>Chargement du formulaire...</p> });
+const AssignmentForm = dynamic(() => import("./forms/AssignmentForm/AssignmentForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const EventForm = dynamic(() => import("./forms/EventForm/EventForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const AnnouncementForm = dynamic(() => import("./forms/AnnouncementForm/AnnouncementForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const GradeForm = dynamic(() => import("./forms/GradeForm/GradeForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const ParentForm = dynamic(() => import("./forms/ParentForm/ParentForm"), { loading: () => <p>Chargement du formulaire...</p> });
-const AttendanceForm = dynamic(() => import("./forms/AttendanceForm"), { loading: () => <p>Chargement du formulaire...</p> });
+const AttendanceForm = dynamic(() => import("./forms/AttendanceForm/AttendanceForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const LessonForm = dynamic(() => import("./forms/LessonForm/LessonForm"), { loading: () => <p>Chargement du formulaire...</p> });
 const ResultForm = dynamic(() => import("./forms/ResultForm/ResultForm"), { loading: () => <p>Chargement du formulaire...</p> });
 
