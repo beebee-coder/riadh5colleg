@@ -1,7 +1,7 @@
 // src/components/forms/AttendanceForm.tsx
 "use client";
 
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ import { attendanceSchema, type AttendanceSchema } from "@/lib/formValidationSch
 import type { Dispatch, SetStateAction } from "react";
 import type { Student, LessonWithDetails } from "@/types";
 import { Button } from "@/components/ui/button";
-import InputField from "@/components/InputField";
+import InputField from "@/components/forms/InputField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
@@ -48,8 +48,8 @@ const useAttendanceForm = ({ type, data, setOpen }: AttendanceFormProps) => {
 
   const isPresent = watch("present");
   const router = useRouter();
-  const [createAttendance, { isLoading: isCreating, isSuccess: createSuccess, error: createErrorData }] = useCreateAttendanceMutation();
-  const [updateAttendance, { isLoading: isUpdating, isSuccess: updateSuccess, error: updateErrorData }] = useUpdateAttendanceMutation();
+  const [createAttendance, { isLoading: isCreating, error: createErrorData }] = useCreateAttendanceMutation();
+  const [updateAttendance, { isLoading: isUpdating, error: updateErrorData }] = useUpdateAttendanceMutation();
   const isLoading = isCreating || isUpdating;
 
   const onSubmit: SubmitHandler<AttendanceSchema> = async (formData) => {
@@ -73,13 +73,13 @@ const useAttendanceForm = ({ type, data, setOpen }: AttendanceFormProps) => {
 
 // --- Form Fields Component ---
 interface FormFieldsProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<AttendanceSchema>;
+  errors: FieldErrors<AttendanceSchema>;
   isLoading: boolean;
   isPresent: boolean;
-  setValue: any;
-  students: { id: string; name: string; surname: string }[];
-  lessons: { id: number; name: string }[];
+  setValue: UseFormSetValue<AttendanceSchema>;
+  students: Pick<Student, 'id' | 'name' | 'surname'>[];
+  lessons: Pick<LessonWithDetails, 'id' | 'name'>[];
   isUpdate: boolean;
 }
 
@@ -137,7 +137,6 @@ const FormFields = ({ register, errors, isLoading, isPresent, setValue, students
     </div>
   </div>
 );
-
 
 // --- Main Component ---
 const AttendanceForm = ({ type, data, setOpen, relatedData }: AttendanceFormProps) => {
