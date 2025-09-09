@@ -1,8 +1,13 @@
+//src/components/forms/AssignmentForm/FormFields.tsx
+"use client";
+
 import InputField from "@/components/InputField";
+import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { AssignmentSchema } from "@/lib/formValidationSchemas";
 
 interface FormFieldsProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<AssignmentSchema>;
+  errors: FieldErrors<AssignmentSchema>;
   isLoading: boolean;
   lessons: { id: number; name: string }[];
 }
@@ -42,7 +47,7 @@ const FormFields = ({ register, errors, isLoading, lessons }: FormFieldsProps) =
         >
           <option value="">Sélectionner un cours</option>
           {lessons.map((lesson) => (
-            <option value={lesson.id} key={lesson.id}>
+            <option value={String(lesson.id)} key={lesson.id}>
               {lesson.name}
             </option>
           ))}
