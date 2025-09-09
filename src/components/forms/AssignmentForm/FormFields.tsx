@@ -1,5 +1,5 @@
 //src/components/forms/AssignmentForm/FormFields.tsx
-"use client";
+// "use client";
 
 import InputField from "@/components/InputField";
 import { UseFormRegister, FieldErrors } from "react-hook-form";
