@@ -2,101 +2,132 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-import type { SafeUser } from '@/types';
-import { cookies } from 'next/headers';
-import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import { initializeFirebaseAdmin, getAdminAuth } from '@/lib/firebase-admin';
 import { Role } from '@/types';
-
-async function createSessionCookie(uid: string, idToken: string) {
-    const admin = await initializeFirebaseAdmin();
-    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 days
-    const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn });
-    return sessionCookie;
-}
-
+import type { SafeUser } from '@/types';
 
 export async function POST(request: NextRequest) {
-  console.log("--- 🚀 API: Tentative de création de session via token Firebase ---");
+  console.log("🔐 API: Tentative de connexion via Firebase");
+  
   try {
     const { idToken } = await request.json();
 
     if (!idToken) {
-      return NextResponse.json({ message: "Le jeton ID est requis." }, { status: 400 });
+      return NextResponse.json(
+        { message: "Le jeton ID est requis." }, 
+        { status: 400 }
+      );
     }
     
-    const admin = await initializeFirebaseAdmin();
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const { uid, email, name, picture } = decodedToken;
-
-    console.log(`[API/login] Token vérifié pour l'UID: ${uid}. Recherche de l'utilisateur dans la BDD...`);
+    // Initialiser Firebase Admin
+    await initializeFirebaseAdmin();
+    const auth = getAdminAuth();
     
+    // Vérifier le token
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const { uid, email, name, picture, email_verified } = decodedToken;
+
+    console.log(`✅ Token vérifié pour: ${email}`);
+    
+    // Vérifier que l'email est confirmé (important pour Google)
+    if (!email_verified) {
+      return NextResponse.json(
+        { message: "Veuillez vérifier votre adresse email avant de vous connecter." }, 
+        { status: 401 }
+      );
+    }
+
+    // Rechercher ou créer l'utilisateur
     let user = await prisma.user.findUnique({
       where: { id: uid },
     });
 
-    // If user does not exist, create a new one (First time social login)
     if (!user) {
-        console.log(`[API/login] Utilisateur non trouvé pour l'UID: ${uid}. Création d'un nouveau profil...`);
-        
-        const [firstName, ...lastNameParts] = (name || '').split(' ');
-        const lastName = lastNameParts.join(' ') || '';
+      console.log(`👤 Création d'un nouveau profil pour: ${email}`);
+      
+      const [firstName, ...lastNameParts] = (name || '').split(' ');
+      const lastName = lastNameParts.join(' ') || '';
 
-        // Transaction to create User and default Parent profile
-        const newUser = await prisma.$transaction(async (tx) => {
-            const createdUser = await tx.user.create({
-                data: {
-                    id: uid,
-                    email: email!,
-                    username: email!,
-                    name: name || email!,
-                    img: picture,
-                    role: Role.PARENT, // Default role for social sign-up
-                    active: true,
-                }
-            });
+      user = await prisma.user.create({
+        data: {
+          id: uid,
+          email: email!,
+          username: email!,
+          name: name || email!,
+          img: picture,
+          role: Role.PARENT,
+          active: true,
+        }
+      });
 
-            await tx.parent.create({
-                data: {
-                    userId: createdUser.id,
-                    name: firstName,
-                    surname: lastName,
-                    address: '',
-                }
-            });
-
-            return createdUser;
-        });
-        
-        user = newUser;
-        console.log(`[API/login] Profil Parent créé avec succès pour le nouvel utilisateur: ${email}`);
+      // Créer le profil parent associé
+      await prisma.parent.create({
+        data: {
+          userId: user.id,
+          name: firstName,
+          surname: lastName,
+          address: '',
+        }
+      });
     }
     
-    console.log(`[API/login] Utilisateur trouvé: ${user.email}. Création du cookie de session...`);
+    // Créer le cookie de session
+    const expiresIn = 60 * 60 * 24 * 7 * 1000; // 7 jours
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
     
+    // Préparer la réponse
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...safeUser } = user;
+    const { password: _, ...safeUser } = user;
+    const response = NextResponse.json({ 
+      user: safeUser as SafeUser,
+      message: "Connexion réussie" 
+    });
 
-    const sessionCookie = await createSessionCookie(uid, idToken);
-    
-    const response = NextResponse.json({ user: safeUser as SafeUser });
-
+    // Définir le cookie
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+      maxAge: 60 * 60 * 24 * 7, // 7 jours en secondes
       path: '/',
     });
 
-    console.log(`✅ [API/login] Cookie de session créé pour ${user.email}.`);
-    
+    console.log(`✅ Session créée pour: ${email}`);
     return response;
 
   } catch (error: any) {
-    console.error('❌ [API/login] Erreur de création de session:', error);
-    if (error.code === 'auth/id-token-revoked' || error.code === 'auth/argument-error') {
-       return NextResponse.json({ message: "Jeton de session invalide ou expiré." }, { status: 401 });
+    console.error('❌ Erreur de création de session:', error);
+    
+    // Gestion d'erreurs spécifiques Firebase
+    if (error.code === 'auth/id-token-revoked') {
+      return NextResponse.json(
+        { message: "Session expirée. Veuillez vous reconnecter." }, 
+        { status: 401 }
+      );
     }
-    return NextResponse.json({ message: "Une erreur interne est survenue." }, { status: 500 });
+    
+    if (error.code === 'auth/argument-error') {
+      return NextResponse.json(
+        { message: "Token d'authentification invalide." }, 
+        { status: 400 }
+      );
+    }
+    
+    return NextResponse.json(
+      { message: "Erreur interne du serveur." }, 
+      { status: 500 }
+    );
   }
+}
+
+// Ajouter la gestion des requêtes OPTIONS pour CORS
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
