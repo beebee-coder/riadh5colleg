@@ -3,9 +3,12 @@
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { useLoginMutation } from '@/lib/redux/api/authApi';
+import { initializeFirebaseApp } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
 
 const GoogleIcon = (props: React.ComponentProps<'svg'>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -17,16 +20,50 @@ const GoogleIcon = (props: React.ComponentProps<'svg'>) => (
 
 export default function SocialSignInButtons() {
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+    const [loginApi, { isLoading }] = useLoginMutation();
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     const handleGoogleSignIn = async () => {
-        setIsLoading(true);
-        toast({
-            variant: 'destructive',
-            title: 'Fonctionnalité non implémentée',
-            description: 'La connexion via Google n\'est pas encore prise en charge dans ce flux simplifié.',
-        });
-        setIsLoading(false);
+        setIsGoogleLoading(true);
+        try {
+            const app = initializeFirebaseApp();
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+            
+            console.log("🔥 [GoogleSignIn] Ouverture de la popup de connexion Google...");
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            
+            console.log("✅ [GoogleSignIn] Succès de l'authentification Google. Obtention du token ID...");
+            const idToken = await user.getIdToken();
+
+            console.log("📡 [GoogleSignIn] Envoi du token ID à notre API backend...");
+            await loginApi({ idToken }).unwrap();
+
+            console.log("✅ [GoogleSignIn] Notre API a validé la session avec succès.");
+            toast({
+                title: "Connexion réussie!",
+                description: "Vous allez être redirigé vers votre tableau de bord."
+            });
+
+            router.push('/dashboard');
+            router.refresh();
+
+        } catch (error: any) {
+            console.error("❌ [GoogleSignIn] Erreur lors de la connexion Google:", error);
+            const errorMessage = error.code === 'auth/account-exists-with-different-credential'
+                ? "Un compte avec cette adresse e-mail existe déjà avec une autre méthode de connexion."
+                : "Une erreur est survenue lors de la connexion avec Google.";
+            
+            toast({
+                variant: 'destructive',
+                title: 'Échec de la connexion Google',
+                description: errorMessage,
+            });
+        } finally {
+            setIsGoogleLoading(false);
+        }
     };
 
     return (
@@ -46,9 +83,9 @@ export default function SocialSignInButtons() {
                 variant="outline"
                 className="w-full"
                 onClick={handleGoogleSignIn}
-                disabled={isLoading}
+                disabled={isLoading || isGoogleLoading}
             >
-                {isLoading ? (
+                {isGoogleLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                     <GoogleIcon className="mr-2 h-4 w-4" />

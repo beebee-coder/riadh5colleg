@@ -5,6 +5,7 @@ import { SESSION_COOKIE_NAME } from '@/lib/constants';
 import type { SafeUser } from '@/types';
 import { cookies } from 'next/headers';
 import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
+import { Role } from '@/types';
 
 async function createSessionCookie(uid: string, idToken: string) {
     const admin = await initializeFirebaseAdmin();
@@ -25,19 +26,50 @@ export async function POST(request: NextRequest) {
     
     const admin = await initializeFirebaseAdmin();
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
+    const { uid, email, name, picture } = decodedToken;
 
     console.log(`[API/login] Token vérifié pour l'UID: ${uid}. Recherche de l'utilisateur dans la BDD...`);
     
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: uid },
     });
 
+    // If user does not exist, create a new one (First time social login)
     if (!user) {
-      // This case should ideally not happen if registration is enforced
-      // but it's a good safeguard.
-      console.log(`[API/login] Utilisateur non trouvé dans la BDD pour l'UID: ${uid}`);
-      return NextResponse.json({ message: "Utilisateur non trouvé dans notre système." }, { status: 401 });
+        console.log(`[API/login] Utilisateur non trouvé pour l'UID: ${uid}. Création d'un nouveau profil...`);
+        
+        const [firstName, ...lastNameParts] = (name || '').split(' ');
+        const lastName = lastNameParts.join(' ') || '';
+
+        // Transaction to create User and default Parent profile
+        const newUser = await prisma.$transaction(async (tx) => {
+            const createdUser = await tx.user.create({
+                data: {
+                    id: uid,
+                    email: email!,
+                    username: email!,
+                    name: name || email!,
+                    img: picture,
+                    role: Role.PARENT, // Default role for social sign-up
+                    active: true,
+                    emailVerified: true,
+                }
+            });
+
+            await tx.parent.create({
+                data: {
+                    userId: createdUser.id,
+                    name: firstName,
+                    surname: lastName,
+                    address: '',
+                }
+            });
+
+            return createdUser;
+        });
+        
+        user = newUser;
+        console.log(`[API/login] Profil Parent créé avec succès pour le nouvel utilisateur: ${email}`);
     }
     
     console.log(`[API/login] Utilisateur trouvé: ${user.email}. Création du cookie de session...`);
