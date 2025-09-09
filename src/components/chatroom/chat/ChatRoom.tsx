@@ -1,6 +1,6 @@
 //src/components/chat/ChatRoom.tsx
 'use client';
-import { useAppSelector } from '@/lib/redux/store';
+import { useAppSelector } from '@/lib/redux/hooks';
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppDispatch } from '@/hooks/redux-hooks';
@@ -9,6 +9,7 @@ import { ChatAccessDenied } from './ChatAccessDenied';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
+import { Role } from '@/types';
 
 interface ChatRoomProps {
   roomType: 'admin' | 'teacher';
