@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { Providers } from "./Providers"; // Importation du nouveau composant
 
@@ -30,8 +29,7 @@ export default function RootLayout({
           "font-body"
         )}
       >
-        <Providers>{children}</Providers> {/* Encapsulation des enfants avec le Provider */}
-        <Toaster />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
