@@ -65,7 +65,7 @@ export const store = configureStore({
         // Ignore these action types
         ignoredActions: ['session/startSession/fulfilled', 'session/startMeeting/fulfilled', 'session/fetchSessionState/fulfilled'],
         // Ignore these field paths in all actions
-        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+        ignoredActionPaths: ['meta.arg', 'payload.timestamp', 'meta.baseQueryMeta.request', 'meta.baseQueryMeta.response'],
         // Ignore these paths in the state
         ignoredPaths: ['session.activeSession'],
       },
@@ -80,6 +80,6 @@ export const store = configureStore({
 
 setupListeners(store.dispatch);
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
 export type AppStore = typeof store;
