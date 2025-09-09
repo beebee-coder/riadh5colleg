@@ -15,7 +15,7 @@ const onlineUsers = new Map<string, string>(); // socket.id -> userId
 
 app.prepare().then(async () => {
   const port = await portfinder.getPortPromise({
-    port: parseInt(process.env.PORT || '3000', 10),
+    port: parseInt(process.env.PORT || '3001', 10),
     stopPort: 4000 // Stop searching for ports at 4000
   });
 
