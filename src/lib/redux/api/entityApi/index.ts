@@ -1,3 +1,4 @@
+
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { entityConfig, baseQueryWithCredentials } from './config';
 import { gradeEndpoints } from './endpoints/gradeEndpoints';
@@ -42,16 +43,7 @@ export const entityApi = createApi({
         method: 'PUT',
         body,
       }),
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          dispatch(
-            authApi.util.invalidateTags([{ type: 'Session', id: 'CURRENT' }])
-          );
-        } catch {
-          // Errors are handled by the component that calls the mutation.
-        }
-      },
+      invalidatesTags: ['Session'], // Invalidate session tag after profile update
     }),
     updateStudentOptionalSubject: builder.mutation<Student, { studentId: string; optionalSubjectId: number }>({
       query: ({ studentId, optionalSubjectId }) => ({
