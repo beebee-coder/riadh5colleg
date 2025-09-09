@@ -46,7 +46,7 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
       students,
       lessons
     ] = await Promise.all([
-      prisma.class.findMany({ include: { grade: true, _count: { select: { students: true, lessons: true } } } }),
+      prisma.class.findMany({ include: { grade: true, supervisor: true, _count: { select: { students: true, lessons: true } } } }),
       prisma.subject.findMany({orderBy: {name: 'asc'}}),
       prisma.teacher.findMany({ include: { user: true, subjects: true, lessons: { select: { classId: true }, distinct: ['classId'] } } }),
       prisma.classroom.findMany({orderBy: {name: 'asc'}}),
