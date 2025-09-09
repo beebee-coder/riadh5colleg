@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { io, Socket } from 'socket.io-client';
 import { updateStudentPresence, studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';
-import { RootState } from '../lib/redux/store';
+import { RootState } from '@/lib/redux/store';
 import { toast } from 'sonner';
 
 interface SocketContextType {
@@ -34,13 +34,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized and connected
     }
     
-    // Connect to the custom server, assuming it runs on the same host/port as the Next.js app.
-    // In production, this would be your single production URL.
-    // In development, this connects to localhost:3000 where server.ts is running.
-    console.log(`🔌 [SocketProvider] Initializing socket connection to the custom server for user ${user.id}`);
+    // Connect to the custom server, which will be the same origin as the web page.
+    console.log(`🔌 [SocketProvider] Initializing socket connection for user ${user.id}`);
 
     // The path is not needed anymore as we are connecting to the root server
-    socketRef.current = io('http://localhost:3000', {
+    socketRef.current = io({ // Connect to the same server that serves the page
       transports: ['websocket', 'polling'],
       auth: {
         userId: user.id,

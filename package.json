@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx watch server.ts",
+    "dev": "next dev",
     "build": "next build",
-    "start": "tsx server.ts",
+    "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
