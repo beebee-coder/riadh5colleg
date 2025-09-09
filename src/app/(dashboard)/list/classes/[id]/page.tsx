@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Prisma } from "@prisma/client";
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import type { WizardData, Lesson, ClassWithGrade, TeacherWithDetails, Subject, Classroom } from "@/types/index";
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 
 // Define arguments for the prisma query to ensure type safety and reusability
 const classWithDetailsArgs = Prisma.validator<Prisma.ClassFindUniqueArgs>()({

@@ -8,8 +8,8 @@
  * - FindReplacementInput - The input type for the findReplacement function.
  * - ReplacementSolution - The output type for one of the proposed solutions.
  */
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit/zod';
+import { ai } from '@/lib/genkit';
+import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { Day, Lesson } from '@prisma/client';
 import { format } from 'date-fns';

@@ -1,6 +1,7 @@
 // src/components/teacher/TeacherShortcuts.tsx
 import Link from "next/link";
-import Performance from "../Performance";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface TeacherShortcutsProps {
   teacherId: string;
@@ -32,7 +33,3 @@ export default function TeacherShortcuts({ teacherId }: TeacherShortcutsProps) {
     </Card>
   );
 }
-
-// Keep Performance component import if needed elsewhere, or remove if fully obsolete
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";

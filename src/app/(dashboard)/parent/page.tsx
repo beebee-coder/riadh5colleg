@@ -7,7 +7,7 @@ import type { WizardData } from '@/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import dynamic from 'next/dynamic';
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchAllDataForWizard } from '@/lib/data-fetching';
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 
 const TimetableDisplay = dynamic(() => import('@/components/schedule/TimetableDisplay'), {
   ssr: false,

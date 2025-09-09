@@ -1,6 +1,7 @@
 // src/components/student/StudentShortcuts.tsx
 import Link from "next/link";
 import type { StudentWithDetails } from "@/types/index";
+import { Button } from "../ui/button";
 
 interface StudentShortcutsProps {
   student: StudentWithDetails;
