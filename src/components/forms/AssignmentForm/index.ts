@@ -1,2 +1,2 @@
 export { default } from "./AssignmentForm";
-export type { AssignmentFormProps } from "./types";
+export type { AssignmentFormProps } from "../types";
