@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import FormFields from "./AttendanceForm/FormFields";
 import useAttendanceForm from "./AttendanceForm/useAttendanceForm";
-import type { AttendanceFormProps } from "./AttendanceForm/types";
+import type { AttendanceFormProps } from "./types";
 
 const AttendanceForm = ({
   type,
@@ -45,7 +45,7 @@ const AttendanceForm = ({
       
       {(createIsError || updateIsError) && (
         <span className="text-destructive text-sm mt-2">
-          {(createErrorData as any)?.data?.message || 
+          Erreur: {(createErrorData as any)?.data?.message || 
            (updateErrorData as any)?.data?.message || 
            "Une erreur s'est produite."}
         </span>

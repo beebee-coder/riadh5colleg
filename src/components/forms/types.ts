@@ -1,6 +1,9 @@
 // src/components/forms/types.ts
 import type { EntityType } from "@/lib/redux/api/entityApi/config";
 import type { Teacher, Subject, Class, Student, Grade, Parent, Lesson, Exam, Assignment, Event, Announcement, Result, Attendance, Classroom } from "@/types";
+import type { Dispatch, SetStateAction } from "react";
+import type { UseMutation } from '@reduxjs/toolkit/query/react';
+import type { MutationDefinition } from '@reduxjs/toolkit/query';
 
 // A generic type for the data prop, mapping entity type to its data structure
 type EntityDataMap = {
@@ -28,7 +31,7 @@ type RelatedDataMap = {
     student: { grades?: Grade[]; classes?: Class[]; parents?: Parent[] };
     lesson: { subjects?: Subject[]; classes?: Class[]; teachers?: Teacher[]; classrooms?: Classroom[] };
     exam: { lessons?: Lesson[] };
-    assignment: { lessons?: Lesson[] };
+    assignment: { lessons?: Lesson[], subjects?: Subject[], classes?: Class[] };
     event: { classes?: Class[] };
     announcement: { classes?: Class[] };
     result: { students?: Student[]; exams?: Exam[]; assignments?: Assignment[] };
@@ -59,7 +62,24 @@ export interface TeacherFormProps {
 
 export interface AssignmentFormProps {
   type: 'create' | 'update';
-  initialData?: Assignment;
+  data?: Assignment;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  relatedData?: { lessons: Lesson[] };
+  relatedData?: { lessons?: Lesson[] };
 }
+
+export interface UseAssignmentFormProps extends AssignmentFormProps {
+    createAssignment: UseMutation<MutationDefinition<any, any, any, any, any>>;
+    updateAssignment: UseMutation<MutationDefinition<any, any, any, any, any>>;
+}
+
+export interface AttendanceFormProps {
+  type: "create" | "update";
+  data?: Attendance;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  relatedData?: {
+    students?: Pick<Student, 'id' | 'name' | 'surname'>[];
+    lessons?: Pick<Lesson, 'id' | 'name'>[];
+  };
+}
+
+// ... other form-specific props can be added here

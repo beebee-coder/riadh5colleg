@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { AttendanceSchema } from "@/lib/formValidationSchemas";
-import { Student, LessonWithDetails } from "@/types";
+import { Student, Lesson } from "@/types";
 
 
 interface FormFieldsProps {
@@ -14,7 +14,7 @@ interface FormFieldsProps {
   isPresent: boolean;
   setValue: UseFormSetValue<AttendanceSchema>;
   students: Pick<Student, 'id' | 'name' | 'surname'>[];
-  lessons: Pick<LessonWithDetails, 'id' | 'name'>[];
+  lessons: Pick<Lesson, 'id' | 'name'>[];
   isUpdate: boolean;
 }
 

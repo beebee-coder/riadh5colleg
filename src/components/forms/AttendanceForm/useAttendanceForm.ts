@@ -1,13 +1,13 @@
 // src/components/forms/AttendanceForm/useAttendanceForm.ts
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler, UseFormHandleSubmit, FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "@/lib/redux/api/entityApi/index";
 import { attendanceSchema } from "@/lib/formValidationSchemas";
 import type { AttendanceSchema } from "@/types/schemas";
-import type { AttendanceFormProps, AttendanceFormReturn } from "./types";
+import type { AttendanceFormProps } from "../types";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { SerializedError } from "@reduxjs/toolkit";
 
@@ -16,7 +16,7 @@ const useAttendanceForm = ({
   type,
   data,
   setOpen,
-}: AttendanceFormProps): AttendanceFormReturn => {
+}: Pick<AttendanceFormProps, 'type' | 'data' | 'setOpen'> & { relatedData?: any }) => {
   const {
     register,
     handleSubmit,
