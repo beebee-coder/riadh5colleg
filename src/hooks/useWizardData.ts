@@ -1,7 +1,7 @@
 // src/hooks/useWizardData.ts
 import { useMemo } from 'react';
 import { selectSchoolConfig } from '../lib/redux/features/schoolConfigSlice';
-import { useAppSelector } from '@/lib/redux/store';
+import { useAppSelector } from '@/lib/redux/hooks';
 import { selectAllClasses } from '../lib/redux/features/classes/classesSlice';
 import { selectAllSalles } from '../lib/redux/features/classrooms/classroomsSlice';
 import { selectAllGrades } from '../lib/redux/features/grades/gradesSlice';
