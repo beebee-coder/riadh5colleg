@@ -26,8 +26,8 @@ app.prepare().then(() => {
     }
   });
 
+  // The Socket.IO server is now attached directly without a custom path.
   const io = new SocketIOServer(httpServer, {
-    path: '/api/socket',
     // We are not specifying transports here to let Socket.IO choose the best one.
   });
 
