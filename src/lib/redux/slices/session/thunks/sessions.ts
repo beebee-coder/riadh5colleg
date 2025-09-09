@@ -1,8 +1,9 @@
 // src/lib/redux/slices/session/thunks/sessions.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { ActiveSession, ClassRoom, Poll, Quiz, SessionParticipant, QuizQuestion, SessionTemplate } from '../types';
+import { ActiveSession, ClassRoom, Poll, Quiz, SessionParticipant, SessionTemplate } from '../types';
 import type { SafeUser, Role, SessionTemplatePoll } from '@/types';
 import { addNotification } from '../../notificationSlice';
+import type { RootState } from '@/lib/redux/store'; // Import the RootState type
 
 export const startSession = createAsyncThunk<ActiveSession, { 
   classId: string; 
@@ -11,7 +12,7 @@ export const startSession = createAsyncThunk<ActiveSession, {
   templateId?: string 
 }, { 
   rejectValue: string;
-  state: { session: { classes: ClassRoom[], activeSession: { quizzes: Quiz[], polls: Poll[] } }, auth: { user: SafeUser | null } };
+  state: RootState; // Use the RootState for correct type inference
 }>(
   'session/startSession',
   async ({ classId, className, participantIds, templateId }, { rejectWithValue, getState, dispatch }) => {
@@ -52,14 +53,14 @@ export const startSession = createAsyncThunk<ActiveSession, {
 
     let templatePolls: Poll[] = [];
     let templateQuizzes: Quiz[] = [];
-    const selectedTemplate = templateId ? state.session.activeSession.quizzes.find(t => t.id === templateId) : null;
+    const selectedTemplate = templateId ? state.session.activeSession?.quizzes.find(t => t.id === templateId) : null;
     
     if (selectedTemplate) {
       // Logic for handling templates if needed
     }
     
     const initialSessionPayload = {
-      sessionType: 'class',
+      sessionType: 'CLASS',
       classId,
       className,
       participants,
@@ -113,7 +114,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
   participantIds: string[] 
 }, { 
   rejectValue: string;
-  state: { session: { meetingCandidates: SessionParticipant[] }, auth: { user: SafeUser | null } };
+  state: RootState;
 }>(
   'session/startMeeting',
   async ({ title, participantIds }, { rejectWithValue, getState, dispatch }) => {
@@ -152,7 +153,7 @@ export const startMeeting = createAsyncThunk<ActiveSession, {
     });
 
     const initialSessionPayload = {
-      sessionType: 'meeting',
+      sessionType: 'MEETING',
       title,
       participants,
       hostId: host.id,
