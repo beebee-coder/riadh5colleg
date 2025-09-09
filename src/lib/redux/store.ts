@@ -1,7 +1,6 @@
 // src/lib/redux/store.ts
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { TypedUseSelectorHook, useSelector } from 'react-redux';
 
 // APIs
 import { authApi } from './api/authApi';
@@ -16,7 +15,7 @@ import reportReducer from './slices/reportSlice';
 import wizardReducer from './features/wizardSlice';
 import schoolConfigReducer from './features/schoolConfigSlice';
 import classesReducer from './features/classes/classesSlice';
-import classReducer from './slices/class-slice'; // Import the new slice reducer
+import classReducer from './slices/class-slice'; 
 import subjectsReducer from './features/subjects/subjectsSlice';
 import teachersReducer from './features/teachers/teachersSlice';
 import studentsReducer from './features/students/studentsSlice';
@@ -39,7 +38,7 @@ const rootReducer = combineReducers({
   wizard: wizardReducer,
   schoolConfig: schoolConfigReducer,
   classes: classesReducer,
-  class: classReducer, // Add the new slice reducer
+  class: classReducer,
   subjects: subjectsReducer,
   teachers: teachersReducer,
   students: studentsReducer,
@@ -83,5 +82,4 @@ setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export type AppStore = typeof store;
