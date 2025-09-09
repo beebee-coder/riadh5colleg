@@ -1,5 +1,6 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type SubmitHandler } from "react-hook-form";
+import { useForm, type SubmitHandler, UseFormHandleSubmit, FieldErrors, UseFormRegister } from "react-hook-form";
 import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -24,8 +25,8 @@ const useExamForm = ({
     resolver: zodResolver(examSchema),
     defaultValues: data ? {
       ...data,
-      startTime: data.startTime ? new Date(data.startTime).toISOString().slice(0, 16) : undefined,
-      endTime: data.endTime ? new Date(data.endTime).toISOString().slice(0, 16) : undefined,
+      startTime: data.startTime ? new Date(data.startTime) : undefined,
+      endTime: data.endTime ? new Date(data.endTime) : undefined,
       lessonId: data.lessonId,
     } : {},
   });
@@ -86,7 +87,7 @@ const useExamForm = ({
 
   return {
     register,
-    handleSubmit,
+    handleSubmit: handleSubmit as UseFormHandleSubmit<ExamSchema>,
     actualOnSubmit,
     errors,
     isLoading,
