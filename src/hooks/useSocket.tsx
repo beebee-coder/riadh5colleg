@@ -34,9 +34,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized and connected
     }
     
-    const socketUrl = process.env.NODE_ENV === 'production'
-      ? process.env.NEXT_PUBLIC_SITE_URL || '/'
-      : 'http://localhost:3000';
+    // Dynamically set socket URL based on the window's origin
+    const socketUrl = window.location.origin;
       
     console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
 
