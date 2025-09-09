@@ -35,13 +35,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    // Correction pour l'erreur "Cross origin request detected" dans Firebase Studio
-    allowedDevOrigins: [
-      "*.cloudworkstations.dev",
-      "*.firebase.app"
-    ],
-  },
   async headers() {
     return [
       {
