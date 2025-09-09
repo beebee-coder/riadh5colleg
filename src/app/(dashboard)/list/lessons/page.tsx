@@ -1,4 +1,5 @@
 
+
 // src/app/(dashboard)/list/lessons/page.tsx
 import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
@@ -11,11 +12,12 @@ import Image from "next/image";
 import { getServerSession } from "@/lib/auth-utils";
 import { Prisma, Role } from "@prisma/client";
 
-type LessonListItem = Lesson & {
+type LessonListItem = Omit<Lesson, 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'> & {
   subject: Pick<Subject, 'name'>;
-  class: Pick<Class, 'name'>;
+  class: Pick<Class, 'name'> | null; // Allow class to be null
   teacher: Pick<Teacher, 'name' | 'surname'>;
-  
+  startTime: string;
+  endTime: string;
 };
 
 const LessonListPage = async ({
@@ -42,7 +44,7 @@ const LessonListPage = async ({
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
       <td className="flex items-center gap-4 p-4">{item.subject.name}</td>
-      <td>{item.class.name}</td>
+      <td>{item.class?.name || 'N/A'}</td>
       <td className="hidden md:table-cell">
         {item.teacher.name + " " + item.teacher.surname}
       </td>
@@ -100,8 +102,6 @@ const LessonListPage = async ({
     ...lesson,
     startTime: lesson.startTime.toISOString(),
     endTime: lesson.endTime.toISOString(),
-    createdAt: lesson.createdAt.toISOString(),
-    updatedAt: lesson.updatedAt.toISOString(),
   }));
 
   return (
