@@ -1,4 +1,3 @@
-
 // src/app/(dashboard)/student/page.tsx
 
 import { getServerSession } from "@/lib/auth-utils";
@@ -11,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import StudentWeeklyAttendanceChart from "@/components/attendance/StudentWeeklyAttendanceChart";
 
 import type { Lesson, WizardData, ClassWithGrade, TeacherWithDetails, Subject, Classroom } from '@/types';
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 
 const TimetableDisplay = dynamic(() => import('@/components/schedule/TimetableDisplay'), {
   ssr: false,
