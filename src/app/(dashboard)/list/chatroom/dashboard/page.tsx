@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { setSelectedClass, fetchChatroomClasses, startSession } from "@/lib/redux/slices/sessionSlice";
+import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence, fetchSessionState, studentSignaledPresence } from "@/lib/redux/slices/sessionSlice";
+import type { ClassRoom } from '@/lib/redux/slices/session/types';
 import ClassCard from '@/components/chatroom/dashboard/ClassCard';
 import StudentSelector from '@/components/chatroom/dashboard/StudentSelector';
 import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
@@ -15,15 +16,16 @@ import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Video } from 'lucide-react';
-import { ClassRoom } from '@/lib/redux/slices/session/types';
+import { useSocket } from '@/hooks/useSocket';
 
 export default function DashboardPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectCurrentUser);
   const { toast } = useToast();
+  const { socket } = useSocket();
 
-  const { classes, selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session);
+  const { classes = [], selectedClass, activeSession, loading, selectedStudents } = useAppSelector(state => state.session) || {};
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,11 +40,38 @@ export default function DashboardPage() {
   }, [user, activeSession, router]);
 
   useEffect(() => {
-    if (classes.length === 0 && !loading) {
+    if (user?.role === Role.TEACHER && classes.length === 0 && !loading) {
         dispatch(fetchChatroomClasses());
     }
-  }, [dispatch, classes.length, loading]);
+  }, [dispatch, classes.length, loading, user]);
   
+  // Effect for presence and signal updates via Socket.IO
+  useEffect(() => {
+    if (!socket || user?.role !== Role.TEACHER) return;
+
+    console.log("🧑‍🏫 [TeacherView] Setting up Socket.IO listeners.");
+
+    const handlePresenceUpdate = (onlineUserIds: string[]) => {
+      console.log(`📡 [TeacherView] Received presence data. Online users: ${onlineUserIds.length}`, onlineUserIds);
+      dispatch(updateStudentPresence({ onlineUserIds }));
+    };
+
+    const handlePresenceSignal = (studentId: string) => {
+      console.log(`✋ [TeacherView] Received presence signal from student: ${studentId}`);
+      dispatch(studentSignaledPresence(studentId));
+    };
+
+    socket.on('presence:update', handlePresenceUpdate);
+    socket.on('student:signaled_presence', handlePresenceSignal);
+    socket.emit('presence:get'); // Initial fetch
+
+    return () => {
+      console.log("🛑 [TeacherView] Clearing Socket.IO listeners.");
+      socket.off('presence:update', handlePresenceUpdate);
+      socket.off('student:signaled_presence', handlePresenceSignal);
+    };
+  }, [socket, dispatch, user]);
+
   const handleClassSelect = (classroom: ClassRoom) => {
     if (selectedClass?.id === classroom.id) {
         dispatch(setSelectedClass(null));
@@ -64,6 +93,12 @@ export default function DashboardPage() {
 
       if (startSession.fulfilled.match(resultAction)) {
         const newSession = resultAction.payload;
+        
+        // Notify participants via Socket.IO through the server
+        if (socket) {
+            socket.emit('session:start', { ...newSession, participants: newSession.participants.filter(p => p.role === Role.STUDENT) });
+        }
+
         toast({ title: 'Session Démarrée', description: `La session pour ${selectedClass.name} a commencé.`});
         router.push(`/list/chatroom/session?sessionId=${newSession.id}`);
       } else {
