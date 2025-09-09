@@ -1,5 +1,5 @@
 //src/components/forms/AttendanceForm/FormFields.tsx
-// "use client";
+"use client";
 
 import InputField from "@/components/InputField";
 import { Checkbox } from "@/components/ui/checkbox";
