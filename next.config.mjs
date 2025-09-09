@@ -54,7 +54,7 @@ const nextConfig = {
           },
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'unsafe-none', // Désactive l'isolation pour éviter les conflits
+            value: 'require-corp', // Changed from unsafe-none
           },
         ],
       },
@@ -62,4 +62,4 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
