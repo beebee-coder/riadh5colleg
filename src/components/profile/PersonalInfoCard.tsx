@@ -2,12 +2,13 @@
 
 'use client';
 import React from 'react';
+import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Phone, Home, UploadCloud } from 'lucide-react';
 import DynamicAvatar from '@/components/DynamicAvatar';
-import { UserProfile, CloudinaryUploadWidgetResults, CloudinaryUploadWidgetInfo } from './types';
+import { UserProfile, CloudinaryUploadWidgetResults, CloudinaryUploadWidgetInfo, ProfileUpdateSchema } from './types';
 import FormError from '@/components/forms/FormError';
 import { CldUploadWidget } from 'next-cloudinary';
 import { useToast } from '@/hooks/use-toast';
@@ -15,10 +16,10 @@ import { cn } from '@/lib/utils';
 
 
 interface PersonalInfoCardProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<ProfileUpdateSchema>;
+  errors: FieldErrors<ProfileUpdateSchema>;
   isLoading: boolean;
-  setValue: any;
+  setValue: UseFormSetValue<ProfileUpdateSchema>;
   imgUrl: string | null;
   userProfile: UserProfile;
 }

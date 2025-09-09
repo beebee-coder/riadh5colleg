@@ -1,4 +1,5 @@
 import type { Teacher, Student, Parent, Admin, Role } from "@/types";
+import { ProfileUpdateSchema } from "@/types/schemas";
 
 export type UserProfile = (Teacher | Student | Parent | Admin) & {
   user: {
@@ -39,3 +40,5 @@ export interface ProfileFormReturn {
   imgUrl: string | null;
   twoFactorEnabled: boolean;
 }
+
+export type { ProfileUpdateSchema };
