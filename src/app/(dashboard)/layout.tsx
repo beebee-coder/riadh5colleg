@@ -6,6 +6,8 @@ import Menu from "@/components/Menu"
 import Navbar from "@/components/Navbar"
 import { Role } from "@/types"
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children,
 }: {

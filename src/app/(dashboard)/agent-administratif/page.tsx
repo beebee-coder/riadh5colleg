@@ -1,4 +1,7 @@
 // src/app/(dashboard)/agent-administratif/page.tsx
+
+export const dynamic = 'force-dynamic';
+
 export default function AgentAdministratifPage() {
   return (
     <div className="flex items-center justify-center h-screen">

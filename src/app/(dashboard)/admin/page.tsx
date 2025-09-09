@@ -5,6 +5,8 @@ import AdminSidebar from "@/components/dashboard/admin/AdminSidebar";
 import prisma from "@/lib/prisma";
 import type { AnnouncementWithClass, Event } from "@/types";
 
+export const dynamic = 'force-dynamic';
+
 // This data fetching function now correctly runs on the server.
 async function getSidebarData() {
     console.log("👑 [AdminSidebar] Récupération des annonces et des événements depuis Prisma.");
