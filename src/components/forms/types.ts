@@ -1,4 +1,4 @@
-'''// src/components/forms/types.ts
+// src/components/forms/types.ts
 import type { EntityType } from "@/lib/redux/api/entityApi/config";
 import { Teacher, Subject } from "@/types";
 
@@ -25,4 +25,3 @@ export interface AssignmentFormProps {
   initialData?: any;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
-''

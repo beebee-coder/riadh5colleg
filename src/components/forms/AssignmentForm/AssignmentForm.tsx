@@ -1,4 +1,4 @@
-'''import React from 'react';
+import React from 'react';
 import { AssignmentFormProps } from "../types";
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({ type, initialData, setOpen }) => {
@@ -6,4 +6,3 @@ const AssignmentForm: React.FC<AssignmentFormProps> = ({ type, initialData, setO
 };
 
 export default AssignmentForm;
-'''
