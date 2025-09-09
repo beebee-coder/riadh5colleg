@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { Role, type SafeUser } from '@/types';
-import bcrypt from 'bcryptjs';
 
 export async function POST(req: NextRequest) {
   console.log("--- 🚀 API: Tentative d'inscription ---");
@@ -24,8 +23,6 @@ export async function POST(req: NextRequest) {
 
     console.log(`[API/Register] Création d'un nouvel utilisateur dans la base de données pour ${email} avec le rôle ${role}...`);
     
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(password, salt);
     const [firstName, ...lastNameParts] = name.split(' ');
     const lastName = lastNameParts.join(' ') || '';
 
@@ -34,7 +31,7 @@ export async function POST(req: NextRequest) {
             data: {
                 email: email!,
                 username: email!, // Default username to email
-                password: hashedPassword,
+                password: '', // Le mot de passe est géré par Firebase, pas stocké ici
                 role,
                 name: name,
                 active: true, // Activate account upon registration
