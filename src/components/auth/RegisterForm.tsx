@@ -11,6 +11,8 @@ import { Loader2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import FormError from '@/components/forms/FormError';
 import { Role } from '@/types';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { initializeFirebaseApp } from '@/lib/firebase';
 
 type RegisterFormValues = RegisterSchema;
 
@@ -32,16 +34,40 @@ export default function RegisterForm() {
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     console.log("📝 [RegisterForm] Tentative d'inscription soumise pour:", data.email);
     try {
-      await registerApi(data).unwrap();
+      // Étape 1: Créer l'utilisateur dans Firebase Authentication
+      console.log("🔥 [RegisterForm] Création de l'utilisateur dans Firebase Auth...");
+      const app = initializeFirebaseApp();
+      const auth = getAuth(app);
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const firebaseUser = userCredential.user;
+      console.log(`✅ [RegisterForm] Utilisateur créé dans Firebase avec l'UID: ${firebaseUser.uid}`);
+
+      // Étape 2: Créer le profil utilisateur dans notre base de données via notre API
+      console.log("📡 [RegisterForm] Envoi des données à notre API backend pour la création du profil...");
+      await registerApi({
+        uid: firebaseUser.uid, // Utiliser l'UID de Firebase comme ID
+        email: data.email,
+        name: data.name,
+        role: data.role,
+      }).unwrap();
       
+      console.log("✅ [RegisterForm] Profil utilisateur créé avec succès dans notre base de données.");
       toast({
         title: 'Compte créé !',
         description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
       });
       router.push('/login');
+
     } catch (error: any) {
       console.error("❌ [RegisterForm] Erreur lors de l'inscription:", error);
-      const errorMessage = error.data?.message || "Une erreur inattendue s'est produite.";
+      
+      let errorMessage = "Une erreur inattendue s'est produite.";
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'Cette adresse e-mail est déjà utilisée par un autre compte.';
+      } else if (error.data?.message) {
+        errorMessage = error.data.message;
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Erreur lors de l\'inscription',

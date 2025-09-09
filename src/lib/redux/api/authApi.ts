@@ -21,10 +21,11 @@ export interface LoginRequest {
   idToken: string;
 }
 
+// La requête d'inscription n'inclut plus le mot de passe, mais l'UID de Firebase
 export interface RegisterRequest {
+  uid: string;
   email: string;
   name: string;
-  password: string;
   role: Role;
 }
 
