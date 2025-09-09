@@ -60,6 +60,11 @@ const nextConfig = {
       },
     ];
   },
+  watchOptions: {
+    ignored: [
+      '**/.next/**',
+    ],
+  },
 };
 
 module.exports = nextConfig;
