@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import TeacherProfileCard from "@/components/teacher/TeacherProfileCard";
 import TeacherStatsCards from "@/components/teacher/TeacherStatsCards";
 import TeacherShortcuts from "@/components/teacher/TeacherShortcuts";
-import { fetchAllDataForWizard } from '@/lib/data-fetching/fetch-wizard-data';
+import { fetchAllDataForWizard } from '@/lib/data-fetching';
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
@@ -29,7 +29,7 @@ const SingleTeacherPage = async ({
   }
   
   const wizardDataFromDb = await fetchAllDataForWizard();
-  const teacher = wizardDataFromDb.teachers.find(t => t.id === id);
+  const teacher = wizardDataFromDb.teachers.find((t: TeacherWithDetails) => t.id === id);
 
   if (!teacher) {
     return notFound();
@@ -38,7 +38,7 @@ const SingleTeacherPage = async ({
   // Construct the specific wizardData for this teacher's schedule display
   const teacherWizardData: WizardData = {
       ...wizardDataFromDb,
-      schedule: wizardDataFromDb.schedule.filter(l => l.teacherId === id),
+      schedule: wizardDataFromDb.schedule.filter((l: Lesson) => l.teacherId === id),
   };
 
   return (
