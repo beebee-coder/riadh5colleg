@@ -1,22 +1,10 @@
 // src/app/[locale]/(dashboard)/admin/replacements/page.tsx
 export const dynamic = 'force-dynamic';
 
-import prisma from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { UserCheck } from 'lucide-react';
-import ReplacementFinder from '@/components/admin/ReplacementFinder';
+import { UserCheck, AlertTriangle } from 'lucide-react';
 
 export default async function ReplacementPage() {
-    const teachers = await prisma.teacher.findMany({
-        select: {
-            id: true,
-            name: true,
-            surname: true,
-        },
-        orderBy: {
-            surname: 'asc'
-        }
-    });
 
     return (
         <div className="p-4 md:p-6 lg:p-8 space-y-8">
@@ -27,20 +15,23 @@ export default async function ReplacementPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Assistant de Remplacement</h1>
                     <p className="text-muted-foreground mt-1">
-                        Trouvez des remplaçants pour les professeurs absents à l'aide de l'IA.
+                        Cette fonctionnalité est temporairement désactivée.
                     </p>
                 </div>
             </div>
 
             <Card className="shadow-lg">
                 <CardHeader>
-                    <CardTitle>Lancer une recherche</CardTitle>
+                    <CardTitle>Fonctionnalité en maintenance</CardTitle>
                     <CardDescription>
-                        Sélectionnez un professeur et une date pour trouver des solutions de remplacement.
+                        L'assistant de remplacement basé sur l'IA est en cours de maintenance. Veuillez réessayer plus tard.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <ReplacementFinder teachers={teachers} />
+                   <div className="flex items-center justify-center p-8 bg-muted/50 rounded-lg">
+                        <AlertTriangle className="h-8 w-8 text-amber-500 mr-4"/>
+                        <p className="text-muted-foreground">Nous nous excusons pour la gêne occasionnée.</p>
+                   </div>
                 </CardContent>
             </Card>
         </div>
