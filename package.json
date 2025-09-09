@@ -7,7 +7,7 @@
     "genkit:dev": "genkit start",
     "genkit:watch": "genkit start --watch",
     "build": "next build",
-    "start": "NODE_ENV=production tsx server.ts --port 9002 --hostname 0.0.0.0",
+    "start": "next start --port 9002 --hostname 0.0.0.0",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
