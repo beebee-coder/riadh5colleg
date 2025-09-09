@@ -24,19 +24,11 @@ export default function SocialSignInButtons() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    let timeoutId: NodeJS.Timeout;
-    
     try {
-      // Timeout après 30 secondes
-      timeoutId = setTimeout(() => {
-        throw new Error('Timeout: La connexion Google a pris trop de temps');
-      }, 30000);
-
       const app = initializeFirebaseApp();
       const auth = getAuth(app);
       const provider = new GoogleAuthProvider();
       
-      // Demander explicitement l'email et le profil
       provider.addScope('email');
       provider.addScope('profile');
       
@@ -56,24 +48,19 @@ export default function SocialSignInButtons() {
         description: "Redirection vers le tableau de bord..."
       });
 
-      // Redirection et rafraîchissement
       router.push('/dashboard');
       router.refresh();
 
     } catch (error: any) {
-      clearTimeout(timeoutId);
       console.error("❌ Erreur Google Sign-In:", error);
       
       let errorMessage = "Erreur lors de la connexion avec Google";
-      
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = "Popup fermée. Veuillez réessayer.";
       } else if (error.code === 'auth/popup-blocked') {
         errorMessage = "Popup bloquée. Veuillez autoriser les popups pour ce site.";
       } else if (error.code === 'auth/account-exists-with-different-credential') {
         errorMessage = "Un compte existe déjà avec cette adresse email.";
-      } else if (error.message.includes('Timeout')) {
-        errorMessage = "La connexion a pris trop de temps. Veuillez réessayer.";
       }
       
       toast({
