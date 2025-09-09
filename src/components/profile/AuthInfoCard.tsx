@@ -1,16 +1,19 @@
+//components/profile/AuthInfoCard.tsx
+
 'use client';
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { KeyRound } from 'lucide-react';
-import { roleTranslations, UserProfile } from './types';
+import { roleTranslations, UserProfile, ProfileUpdateSchema } from './types';
 import FormError from '@/components/forms/FormError';
+import { UseFormRegister, FieldErrors } from 'react-hook-form';
 
 
 interface AuthInfoCardProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<ProfileUpdateSchema>;
+  errors: FieldErrors<ProfileUpdateSchema>;
   isLoading: boolean;
   userProfile: UserProfile;
 }
