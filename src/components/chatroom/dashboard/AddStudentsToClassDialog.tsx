@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Student } from '@prisma/client';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/lib/redux/store';
-import { fetchAllStudents, updateClassStudents } from '@/lib/redux/slices/class-slice';
+import { fetchAllStudents, updateClassStudents, selectStudents, selectLoading } from '@/lib/redux/slices/class-slice';
 
 interface AddStudentsToClassDialogProps {
   isOpen: boolean;
@@ -17,7 +17,8 @@ interface AddStudentsToClassDialogProps {
 
 export const AddStudentsToClassDialog = ({ isOpen, setOpen, classId, className, initialStudents }: AddStudentsToClassDialogProps) => {
   const dispatch: AppDispatch = useDispatch();
-  const { students, loading } = useSelector((state: RootState) => state.class);
+  const students = useSelector(selectStudents);
+  const loading = useSelector(selectLoading);
   const [selectedStudents, setSelectedStudents] = useState<string[]>(initialStudents);
 
   useEffect(() => {
