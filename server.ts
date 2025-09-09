@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server } from 'socket.io';
-import { NotificationService } from './src/services/notification-service';
+import { NotificationService } from 'src/services/notification-service';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
