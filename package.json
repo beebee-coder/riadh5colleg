@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "genkit start --port 3100 -- tsx --watch src/ai/dev.ts --port 9002 --hostname 0.0.0.0",
+    "dev": "genkit start --port 3100 -- tsx --watch src/ai/dev.ts",
     "genkit:dev": "genkit start",
     "genkit:watch": "genkit start --watch",
     "build": "next build",
