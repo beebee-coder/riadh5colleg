@@ -60,7 +60,14 @@ export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false, // Disabling for performance and to allow non-serializable data if needed
+      serializableCheck: {
+        // Ignore these action types
+        ignoredActions: ['session/startSession/fulfilled', 'session/startMeeting/fulfilled', 'session/fetchSessionState/fulfilled'],
+        // Ignore these field paths in all actions
+        ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
+        // Ignore these paths in the state
+        ignoredPaths: ['session.activeSession'],
+      },
       immutableCheck: false,
     }).concat(
       authApi.middleware,
