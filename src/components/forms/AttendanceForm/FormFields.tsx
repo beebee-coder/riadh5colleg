@@ -1,77 +1,12 @@
-// src/components/forms/AttendanceForm.tsx
-"use client";
-
-import { useForm, type SubmitHandler, UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
-import { useCreateAttendanceMutation, useUpdateAttendanceMutation } from "@/lib/redux/api/entityApi/index";
-import { attendanceSchema, type AttendanceSchema } from "@/lib/formValidationSchemas";
-import type { Dispatch, SetStateAction } from "react";
-import type { Student, LessonWithDetails } from "@/types";
-import { Button } from "@/components/ui/button";
+// src/components/forms/AttendanceForm/FormFields.tsx
 import InputField from "@/components/forms/InputField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { AttendanceSchema } from "@/lib/formValidationSchemas";
+import { Student, LessonWithDetails } from "@/types";
 
-// --- Types ---
-interface AttendanceFormProps {
-  type: "create" | "update";
-  data?: any;
-  setOpen: Dispatch<SetStateAction<boolean>>;
-  relatedData?: {
-    students?: Pick<Student, 'id' | 'name' | 'surname'>[];
-    lessons?: Pick<LessonWithDetails, 'id' | 'name'>[];
-  };
-}
 
-// --- Hook Logic ---
-const useAttendanceForm = ({ type, data, setOpen }: AttendanceFormProps) => {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-    reset,
-  } = useForm<AttendanceSchema>({
-    resolver: zodResolver(attendanceSchema),
-    defaultValues: data ? {
-      ...data,
-      date: data.date ? new Date(data.date).toISOString().split('T')[0] : undefined,
-      present: data.present ?? false,
-    } : {
-      present: true,
-    },
-  });
-
-  const isPresent = watch("present");
-  const router = useRouter();
-  const [createAttendance, { isLoading: isCreating, error: createErrorData }] = useCreateAttendanceMutation();
-  const [updateAttendance, { isLoading: isUpdating, error: updateErrorData }] = useUpdateAttendanceMutation();
-  const isLoading = isCreating || isUpdating;
-
-  const onSubmit: SubmitHandler<AttendanceSchema> = async (formData) => {
-    try {
-      if (type === "create") {
-        await createAttendance(formData).unwrap();
-      } else if (data?.id) {
-        await updateAttendance({ ...formData, id: data.id }).unwrap();
-      }
-      toast({ title: `Présence ${type === "create" ? "enregistrée" : "mise à jour"} avec succès !` });
-      setOpen(false);
-      reset();
-      router.refresh();
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Échec de l'opération", description: err.data?.message || "Une erreur est survenue." });
-    }
-  };
-
-  return { register, handleSubmit, errors, isLoading, isPresent, onSubmit, setValue, createErrorData, updateErrorData };
-};
-
-// --- Form Fields Component ---
 interface FormFieldsProps {
   register: UseFormRegister<AttendanceSchema>;
   errors: FieldErrors<AttendanceSchema>;
@@ -138,48 +73,4 @@ const FormFields = ({ register, errors, isLoading, isPresent, setValue, students
   </div>
 );
 
-// --- Main Component ---
-const AttendanceForm = ({ type, data, setOpen, relatedData }: AttendanceFormProps) => {
-  const {
-    register,
-    handleSubmit,
-    errors,
-    isLoading,
-    isPresent,
-    onSubmit,
-    setValue,
-    createErrorData,
-    updateErrorData,
-  } = useAttendanceForm({ type, data, setOpen, relatedData });
-
-  return (
-    <form className="flex flex-col gap-8" onSubmit={handleSubmit(onSubmit)}>
-      <h1 className="text-xl font-semibold">
-        {type === "create" ? "Enregistrer une Présence" : "Mettre à jour une Présence"}
-      </h1>
-
-      <FormFields
-        register={register}
-        errors={errors}
-        isLoading={isLoading}
-        isPresent={isPresent}
-        setValue={setValue}
-        students={relatedData?.students || []}
-        lessons={relatedData?.lessons || []}
-        isUpdate={type === 'update'}
-      />
-      
-      {(createErrorData || updateErrorData) && (
-        <span className="text-red-500 text-sm mt-2">
-          {(createErrorData as any)?.data?.message || (updateErrorData as any)?.data?.message || "Une erreur s'est produite."}
-        </span>
-      )}
-
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Traitement..." : (type === "create" ? "Enregistrer" : "Mettre à jour")}
-      </Button>
-    </form>
-  );
-};
-
-export default AttendanceForm;
+export default FormFields;
