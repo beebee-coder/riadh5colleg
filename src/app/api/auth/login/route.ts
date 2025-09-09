@@ -52,7 +52,6 @@ export async function POST(request: NextRequest) {
                     img: picture,
                     role: Role.PARENT, // Default role for social sign-up
                     active: true,
-                    emailVerified: true,
                 }
             });
 
