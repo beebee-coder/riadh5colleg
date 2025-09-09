@@ -1,4 +1,5 @@
-//src
+//srccomponents/profile/PersonalInfoCard.tsx
+
 'use client';
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
