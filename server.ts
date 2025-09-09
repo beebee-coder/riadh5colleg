@@ -1,4 +1,3 @@
-
 // server.ts
 import { createServer } from 'http';
 import { parse } from 'url';
@@ -6,13 +5,14 @@ import next from 'next';
 import { Server as SocketIOServer } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+// The 'hostname' and 'port' options should be removed from the Next.js app instance.
+// Next.js will automatically handle this when using a custom server.
+// The port should be handled by the httpServer.listen() call.
+const app = next({ dev });
+const handle = app.getRequestHandler();
+
 // Use the port from the environment, defaulting to 3000
 const port = parseInt(process.env.PORT || '3000', 10);
-
-
-const app = next({ dev, hostname, port });
-const handle = app.getRequestHandler();
 
 // Map to store online user IDs
 const onlineUsers = new Map<string, string>(); // socket.id -> userId
@@ -29,7 +29,6 @@ app.prepare().then(() => {
     }
   });
 
-  // The Socket.IO server is now attached directly without a custom path.
   const io = new SocketIOServer(httpServer, {
     transports: ['websocket', 'polling'],
   });
@@ -81,7 +80,7 @@ app.prepare().then(() => {
 
   httpServer
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> Ready on http://localhost:${port}`);
     })
     .on('error', (err) => {
       console.error(err);
