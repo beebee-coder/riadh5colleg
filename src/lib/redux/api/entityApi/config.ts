@@ -5,8 +5,9 @@ export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' |
 
 // Centralized base query to include credentials in every request
 // and use an absolute URL to avoid proxy issues in some environments.
+// It uses NEXT_PUBLIC_APP_URL in production/preview and a relative path for local development.
 export const baseQueryWithCredentials = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || '/',
   credentials: 'include',
 });
 
