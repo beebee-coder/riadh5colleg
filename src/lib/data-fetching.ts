@@ -1,4 +1,3 @@
-
 // src/lib/data-fetching.ts
 import prisma from "@/lib/prisma";
 import type { WizardData, ClassWithGrade, TeacherWithDetails, Subject, Classroom, Grade, LessonRequirement, TeacherConstraint, SubjectRequirement, TeacherAssignment, SchoolData, Lesson, Student } from '@/types';
@@ -44,7 +43,7 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
       rooms,
       grades,
       students,
-      lessons
+      lessonsFromDb
     ] = await Promise.all([
       prisma.class.findMany({ include: { grade: true, supervisor: true, _count: { select: { students: true, lessons: true } } } }),
       prisma.subject.findMany({orderBy: {name: 'asc'}}),
@@ -78,6 +77,14 @@ export async function fetchAllDataForWizard(): Promise<WizardData> {
       scheduleDraftId: null,
       schoolConfig: {}
     };
+
+    const lessons: Lesson[] = lessonsFromDb.map(l => ({
+        ...l,
+        startTime: l.startTime.toISOString(),
+        endTime: l.endTime.toISOString(),
+        createdAt: l.createdAt.toISOString(),
+        updatedAt: l.updatedAt.toISOString(),
+    }));
 
     return {
         school: defaultSchoolConfig,
