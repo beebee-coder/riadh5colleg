@@ -2,7 +2,7 @@
 "use client";
 
 import React from 'react';
-import type { AssignmentFormProps } from './types';
+import type { AssignmentFormProps } from '../types';
 
 const AssignmentForm: React.FC<AssignmentFormProps> = ({ type, initialData, setOpen }) => {
   // Placeholder for the form implementation
