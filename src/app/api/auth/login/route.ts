@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { SESSION_COOKIE_NAME } from '@/lib/constants';
-import { initializeFirebaseAdmin, getAdminAuth } from '@/lib/firebase-admin';
+import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 import { Role } from '@/types';
 import type { SafeUser } from '@/types';
 
@@ -19,9 +19,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Initialiser Firebase Admin
-    await initializeFirebaseAdmin();
-    const auth = getAdminAuth();
+    // Initialiser Firebase Admin et obtenir l'instance
+    const admin = initializeFirebaseAdmin();
+    const auth = admin.auth();
     
     // Vérifier le token
     const decodedToken = await auth.verifyIdToken(idToken);

@@ -1,25 +1,18 @@
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
 
-let isInitialized = false;
-
 /**
  * A singleton pattern to initialize Firebase Admin SDK.
- * Ensures that the SDK is initialized only once.
+ * Ensures that the SDK is initialized only once and returns the admin instance.
+ * @returns {admin.app.App} The initialized Firebase Admin app instance.
  */
-export async function initializeFirebaseAdmin() {
-  if (isInitialized) {
-    return;
+export function initializeFirebaseAdmin() {
+  if (admin.apps.length > 0) {
+    return admin;
   }
 
   console.log("🔥 [Firebase Admin] Initializing Admin SDK...");
 
-  if (admin.apps.length > 0) {
-    isInitialized = true;
-    console.log("🔥 [Firebase Admin] ✅ Admin SDK was already initialized.");
-    return;
-  }
-  
   const adminConfig = {
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
@@ -35,12 +28,13 @@ export async function initializeFirebaseAdmin() {
     admin.initializeApp({
       credential: admin.credential.cert(adminConfig),
     });
-    isInitialized = true;
     console.log("🔥 [Firebase Admin] ✅ Admin SDK initialized successfully.");
   } catch (error: any) {
     console.error("🔥 [Firebase Admin] ❌ Error initializing Admin SDK:", error.message);
     throw new Error("Could not initialize Firebase Admin SDK: " + error.message);
   }
+
+  return admin;
 }
 
 /**
@@ -49,8 +43,6 @@ export async function initializeFirebaseAdmin() {
  * @returns {admin.auth.Auth} The Firebase Admin Auth service.
  */
 export function getAdminAuth(): admin.auth.Auth {
-    if (!isInitialized) {
-        throw new Error("Firebase Admin SDK not initialized. Call initializeFirebaseAdmin() first.");
-    }
+    // This function will implicitly use the initialized default app.
     return admin.auth();
 }
