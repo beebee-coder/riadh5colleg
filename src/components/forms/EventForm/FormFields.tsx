@@ -1,13 +1,16 @@
-//s
+//src/components/forms/EventF /FormFields.tsx
 import InputField from "@/components/InputField";
 import { Textarea } from "@/components/ui/textarea";
+import { type UseFormRegister, type FieldErrors } from 'react-hook-form';
+import { type EventSchema } from '@/lib/formValidationSchemas';
+import { type Event } from '@/types';
 
 interface FormFieldsProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<EventSchema>;
+  errors: FieldErrors<EventSchema>;
   isLoading: boolean;
   availableClasses: { id: number; name: string }[];
-  initialData?: any;
+  initialData?: Event;
 }
 
 const FormFields = ({ 
@@ -22,7 +25,7 @@ const FormFields = ({
       <InputField
         label="Titre"
         name="title"
-        register={register}
+        register={register as any}
         error={errors.title}
         disabled={isLoading}
         className="md:w-full"
@@ -46,7 +49,7 @@ const FormFields = ({
           label="Date et heure de début"
           name="startTime"
           type="datetime-local"
-          register={register}
+          register={register as any}
           error={errors.startTime}
           disabled={isLoading}
           className="md:w-full"
@@ -55,7 +58,7 @@ const FormFields = ({
           label="Date et heure de fin"
           name="endTime"
           type="datetime-local"
-          register={register}
+          register={register as any}
           error={errors.endTime}
           disabled={isLoading}
           className="md:w-full"
