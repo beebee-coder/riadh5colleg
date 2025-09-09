@@ -2,6 +2,7 @@
 import prisma from "@/lib/prisma";
 import Announcements from "@/components/Announcements";
 import EventCalendarContainer from "@/components/EventCalendarContainer";
+import { type AnnouncementWithClass, type Event } from "@/types";
 
 interface AdminSidebarProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -10,29 +11,30 @@ interface AdminSidebarProps {
 // Data fetching is now co-located with the component that uses it.
 async function getSidebarData() {
     console.log("👑 [AdminSidebar] Récupération des annonces et des événements depuis Prisma.");
-    const announcements = await prisma.announcement.findMany({
+    const announcements: AnnouncementWithClass[] = (await prisma.announcement.findMany({
         take: 5,
         orderBy: { date: 'desc' },
         include: {
             class: { select: { name: true } },
         },
-    });
+    })).map(a => ({...a, date: a.date.toISOString()})) as unknown as AnnouncementWithClass[];
 
-    const events = await prisma.event.findMany({
+
+    const events: Event[] = (await prisma.event.findMany({
         orderBy: { startTime: 'asc' },
-    });
+    })).map(e => ({...e, startTime: e.startTime.toISOString(), endTime: e.endTime.toISOString()})) as unknown as Event[];
     
     // Data is serialized here before being passed to client components if necessary
     return {
-        announcements: JSON.parse(JSON.stringify(announcements)),
-        events: JSON.parse(JSON.stringify(events)),
+        announcements,
+        events,
     };
 }
 
 
 const AdminSidebar = async ({ searchParams }: AdminSidebarProps) => {
     const { announcements, events } = await getSidebarData();
-    const eventDates = events.map((event: { startTime: Date }) => new Date(event.startTime).toISOString().split('T')[0]);
+    const eventDates = events.map((event: { startTime: string }) => new Date(event.startTime).toISOString().split('T')[0]);
     const uniqueEventDates = [...new Set(eventDates)] as string[];
     
     return (
