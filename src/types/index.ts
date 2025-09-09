@@ -174,7 +174,7 @@ export type AnnouncementWithClass = PrismaAnnouncement & {
   class: { name: string } | null;
 };
 
-export type ClassWithGrade = Omit<PrismaClass, 'supervisorId'> & {
+export type ClassWithGrade = PrismaClass & {
   grade: PrismaGrade;
   _count: {
     students: number;
