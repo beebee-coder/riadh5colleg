@@ -8,7 +8,7 @@ function initializeFirebaseAdmin() {
   }
 
   try {
-    const serviceAccount = require('../../prisma/school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json');
+    const serviceAccount = require('../../../prisma/school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json');
     
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
@@ -18,7 +18,7 @@ function initializeFirebaseAdmin() {
     return admin;
   } catch (error) {
     console.error("❌ [Firebase Admin for Seeding] Erreur d'initialisation :", error);
-    console.error("Assurez-vous que le fichier `school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json` existe dans le dossier `prisma`.");
+    console.error("Assurez-vous que le fichier `school-management-426516-firebase-adminsdk-j8v1y-ab239a045c.json` existe à la racine du projet.");
     process.exit(1);
   }
 }

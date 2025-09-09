@@ -54,27 +54,6 @@ export const authApi = createApi({
   baseQuery: baseQueryWithCredentials, // Use the centralized baseQuery
   tagTypes: ['Session'],
   endpoints: (builder) => ({
-    login: builder.mutation<AuthResponse, LoginRequest>({
-      query: (credentials) => ({
-        url: 'api/auth/login', // Paths are now relative to the baseUrl in baseQuery
-        method: 'POST',
-        body: credentials,
-      }),
-      invalidatesTags: ['Session'],
-      // The onQueryStarted for login will now handle setting the user state
-      async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log('📡 [AuthAPI] onQueryStarted pour login. En attente de la réponse...');
-        try {
-          const { data } = await queryFulfilled;
-          if (data.user) {
-            console.log('✅ [AuthAPI] Connexion réussie. Dispatch de setUser:', data.user);
-            dispatch(setUser(data.user));
-          }
-        } catch (error) {
-          console.error('❌ [AuthAPI] Échec de la mutation de connexion.', JSON.stringify(error));
-        }
-      },
-    }),
     register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (userInfo) => ({
         url: 'api/auth/register',
@@ -97,18 +76,6 @@ export const authApi = createApi({
         body,
       }),
       invalidatesTags: ['Session'],
-    }),
-    getSession: builder.query<SessionResponse, void>({
-        queryFn: async () => {
-            // This is now a client-side query that uses the server action
-            try {
-                const session = await getServerSession();
-                return { data: { user: session?.user ?? null } };
-            } catch (error) {
-                return { error: { status: 'FETCH_ERROR', error: 'Failed to fetch session' } };
-            }
-        },
-        providesTags: (result) => (result?.data?.user ? [{ type: 'Session', id: 'CURRENT' }] : []),
     }),
     logout: builder.mutation<LogoutResponse, void>({
       query: () => ({
@@ -133,9 +100,7 @@ export const authApi = createApi({
 });
 
 export const {
-  useLoginMutation,
   useRegisterMutation,
-  useGetSessionQuery,
   useLogoutMutation,
   useSocialLoginMutation,
   useVerify2FAMutation,

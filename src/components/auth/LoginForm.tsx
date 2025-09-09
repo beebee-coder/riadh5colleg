@@ -12,9 +12,11 @@ import { loginSchema } from '@/lib/formValidationSchemas';
 import SocialSignInButtons from './SocialSignInButtons';
 
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { useLoginMutation } from '@/lib/redux/api/authApi';
 import { initializeFirebaseApp } from '@/lib/firebase';
 import { useState } from 'react';
+import { loginWithIdToken } from '@/lib/actions/auth-actions';
+import { useAppDispatch } from '@/lib/redux/hooks';
+import { setUser } from '@/lib/redux/slices/authSlice';
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -22,9 +24,8 @@ export default function LoginForm() {
   console.log("⚛️ [LoginForm] Le composant de connexion est rendu.");
   const router = useRouter();
   const { toast } = useToast();
-  const [loginApi, { isLoading: isApiLoading }] = useLoginMutation();
-  const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
-  const isLoading = isApiLoading || isFirebaseLoading;
+  const dispatch = useAppDispatch();
+  const [isLoading, setIsLoading] = useState(false);
   
   const {
     register,
@@ -36,7 +37,7 @@ export default function LoginForm() {
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     console.log("🔑 [LoginForm] Tentative de connexion soumise pour:", data.email);
-    setIsFirebaseLoading(true);
+    setIsLoading(true);
     try {
       const app = initializeFirebaseApp();
       const auth = getAuth(app);
@@ -46,10 +47,16 @@ export default function LoginForm() {
       console.log("✅ [LoginForm] Succès de la connexion Firebase. Obtention du token ID...");
       const idToken = await userCredential.user.getIdToken();
 
-      console.log("📡 [LoginForm] Envoi du token ID à notre API backend via la mutation RTK...");
-      await loginApi({ idToken }).unwrap();
+      console.log("📡 [LoginForm] Appel de la Server Action 'loginWithIdToken'...");
+      const result = await loginWithIdToken(idToken);
       
-      console.log("✅ [LoginForm] Notre API a validé la session avec succès.");
+      if (result.error || !result.user) {
+        throw new Error(result.error || "Utilisateur non trouvé après la connexion.");
+      }
+
+      console.log("✅ [LoginForm] La Server Action a validé la session avec succès.");
+      dispatch(setUser(result.user));
+      
       toast({
         title: "Connexion réussie!",
         description: "Vous allez être redirigé vers votre tableau de bord."
@@ -60,14 +67,14 @@ export default function LoginForm() {
 
     } catch (error: any) {
       console.error("❌ [LoginForm] Erreur de connexion:", JSON.stringify(error, null, 2));
-      const errorMessage = error.data?.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur inattendue est survenue. Veuillez réessayer.");
+      const errorMessage = error.message || (error.code === 'auth/invalid-credential' ? 'Email ou mot de passe incorrect.' : "Une erreur inattendue est survenue. Veuillez réessayer.");
       toast({
         variant: "destructive",
         title: "Échec de la connexion",
         description: errorMessage,
       });
     } finally {
-      setIsFirebaseLoading(false);
+      setIsLoading(false);
     }
   };
 
