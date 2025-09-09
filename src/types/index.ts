@@ -250,7 +250,7 @@ export interface JwtPayload {
 // --- FORM PROPS & RETURN TYPES ---
 export interface TeacherFormProps {
   type: 'create' | 'update';
-  initialData?: (Partial<Teacher> & { user?: Partial<Pick<any, 'username' | 'email'>>, subjects?: Partial<Pick<Subject, 'id' | 'name'>>[] }) | null;
+  initialData?: (Partial<Teacher> & { user?: Partial<Pick<User, 'username' | 'email'>>, subjects?: Partial<Pick<Subject, 'id' | 'name'>>[] }) | null;
   setOpen: Dispatch<SetStateAction<boolean>>;
   availableSubjects?: Subject[];
   allClasses?: any[];
