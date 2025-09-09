@@ -11,7 +11,7 @@ import { attendanceSchema, type AttendanceSchema } from "@/lib/formValidationSch
 import type { Dispatch, SetStateAction } from "react";
 import type { Student, LessonWithDetails } from "@/types";
 import { Button } from "@/components/ui/button";
-import InputField from "@/components/InputField";
+import InputField from "@/components/forms/InputField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
