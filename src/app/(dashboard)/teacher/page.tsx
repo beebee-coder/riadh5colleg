@@ -3,7 +3,7 @@ import { getServerSession } from "@/lib/auth-utils";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import type { WizardData } from "@/types/index";
