@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     // temporary comment to force reload - 2
@@ -21,7 +22,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["node", "@types/portfinder"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

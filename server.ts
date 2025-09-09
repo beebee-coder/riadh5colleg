@@ -1,23 +1,24 @@
+
 // server.ts
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { Server as SocketIOServer } from 'socket.io';
+import portfinder from 'portfinder';
 
 const dev = process.env.NODE_ENV !== 'production';
-// The 'hostname' and 'port' options should be removed from the Next.js app instance.
-// Next.js will automatically handle this when using a custom server.
-// The port should be handled by the httpServer.listen() call.
 const app = next({ dev });
 const handle = app.getRequestHandler();
-
-// Use the port from the environment, defaulting to 3000
-const port = parseInt(process.env.PORT || '3000', 10);
 
 // Map to store online user IDs
 const onlineUsers = new Map<string, string>(); // socket.id -> userId
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
+  const port = await portfinder.getPortPromise({
+    port: parseInt(process.env.PORT || '3000', 10),
+    stopPort: 4000 // Stop searching for ports at 4000
+  });
+
   const httpServer = createServer((req, res) => {
     try {
       const parsedUrl = parse(req.url!, true);
@@ -84,5 +85,6 @@ app.prepare().then(() => {
     })
     .on('error', (err) => {
       console.error(err);
+      process.exit(1); // Exit if the server fails to start
     });
 });
