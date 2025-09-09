@@ -1,13 +1,18 @@
+//src/components/forms/AttendanceForm/FormFields.tsx
+// "use client";
+
 import InputField from "@/components/InputField";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import type { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type { AttendanceSchema } from "@/lib/formValidationSchemas";
 
 interface FormFieldsProps {
-  register: any;
-  errors: any;
+  register: UseFormRegister<AttendanceSchema>;
+  errors: FieldErrors<AttendanceSchema>;
   isLoading: boolean;
   isPresent: boolean;
-  setValue: any;
+  setValue: UseFormSetValue<AttendanceSchema>;
   students: { id: string; name: string; surname: string }[];
   lessons: { id: number; name: string }[];
   isUpdate: boolean;
@@ -51,19 +56,19 @@ const FormFields = ({
         >
           <option value="">Sélectionner un cours</option>
           {lessons.map((lesson) => (
-            <option value={lesson.id} key={lesson.id}>
+            <option value={String(lesson.id)} key={lesson.id}>
               {lesson.name}
             </option>
           ))}
         </select>
-        {errors.lessonId && <p className="text-xs text-red-400">{errors.lessonId.message}</p>}
+        {errors.lessonId && <p className="text-xs text-red-400">{errors.lessonId.message as string}</p>}
       </div>
 
       <InputField
         label="Date"
         name="date"
         type="date"
-        register={register}
+        register={register as any}
         error={errors?.date}
         disabled={isLoading}
       />
