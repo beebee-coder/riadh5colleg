@@ -147,7 +147,7 @@ export const fetchResults = async ({
     return {
       id: item.id,
       score: item.score,
-      className: assessment.lesson.class.name,
+      className: assessment.lesson.class?.name || 'N/A',
       assessmentDate: new Date(assessmentDate),
       type: isExam ? 'Examen' : 'Devoir' as const, 
       examId: item.exam?.id ?? null, 
