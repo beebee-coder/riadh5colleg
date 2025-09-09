@@ -1,7 +1,8 @@
 // src/lib/redux/api/authApi.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { setUser, logout as logoutAction } from '../slices/authSlice';
 import type { SafeUser, Role } from '@/types/index';
+import { baseQueryWithCredentials } from './entityApi/config';
 
 // --- Response Types ---
 export interface AuthResponse {
@@ -49,12 +50,12 @@ export interface Verify2FARequest {
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/` }),
+  baseQuery: baseQueryWithCredentials, // Use the centralized baseQuery
   tagTypes: ['Session'],
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
       query: (credentials) => ({
-        url: 'login',
+        url: 'api/auth/login', // Paths are now relative to the baseUrl in baseQuery
         method: 'POST',
         body: credentials,
       }),
@@ -75,14 +76,14 @@ export const authApi = createApi({
     }),
     register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (userInfo) => ({
-        url: 'register',
+        url: 'api/auth/register',
         method: 'POST',
         body: userInfo,
       }),
     }),
     socialLogin: builder.mutation<SocialAuthResponse, SocialLoginRequest>({
         query: (credentials) => ({
-            url: 'social-login',
+            url: 'api/auth/social-login',
             method: 'POST',
             body: credentials,
         }),
@@ -90,14 +91,14 @@ export const authApi = createApi({
     }),
     verify2FA: builder.mutation<AuthResponse, Verify2FARequest>({
       query: (body) => ({
-        url: 'verify-2fa',
+        url: 'api/auth/verify-2fa',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['Session'],
     }),
     getSession: builder.query<SessionResponse, void>({
-      query: () => 'session',
+      query: () => 'api/auth/session',
       providesTags: (result) => (result ? [{ type: 'Session', id: 'CURRENT' }] : []),
        async onQueryStarted(args, { dispatch, queryFulfilled }) {
         console.log('📡 [AuthAPI] onQueryStarted pour getSession. En attente de la réponse...');
@@ -118,7 +119,7 @@ export const authApi = createApi({
     }),
     logout: builder.mutation<LogoutResponse, void>({
       query: () => ({
-        url: 'logout',
+        url: 'api/auth/logout',
         method: 'POST',
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
