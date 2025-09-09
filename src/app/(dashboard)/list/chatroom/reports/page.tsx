@@ -1,68 +1,63 @@
 
 'use client';
-export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, BarChart3, Clock, Users, TrendingUp, Loader2 } from 'lucide-react';
-import { useAppSelector } from '@/lib/redux/store';
+import { ArrowLeft, BarChart3, Clock, Users, TrendingUp } from 'lucide-react';
+import { useAppSelector } from '@/hooks/redux-hooks';
 import SessionReportCard from '@/components/chatroom/reports/SessionReportCard';
-import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
+import { selectCurrentUser } from '@/lib/redux/features/auth/authSlice';
 import { Role } from '@/types';
-import type { SessionReport } from '@/lib/redux/slices/reportSlice';
 
-export default function AdminReportsPage() {
-  console.log("📊 [AdminReportsPage] Le composant est en cours de rendu.");
+export type SessionReport = {
+  id: string;
+  classId: string;
+  className: string;
+  teacherId: string;
+  teacherName: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  participants: {
+    id: string;
+    name: string;
+    email: string;
+    joinTime: string;
+    leaveTime: string;
+    duration: number;
+  }[];
+  maxParticipants: number;
+  status: 'active' | 'completed';
+};
+
+export default function ReportsPage() {
+  console.log("📊 [TeacherReportsPage] Le composant est en cours de rendu.");
   const router = useRouter();
   const user = useAppSelector(selectCurrentUser);
-  const [reports, setReports] = useState<SessionReport[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { sessions, loading } = useAppSelector(state => state.reports) as { sessions: SessionReport[]; loading: boolean };
 
   useEffect(() => {
-    console.log("📊 [AdminReportsPage] Le composant est monté. Vérification du rôle et récupération des rapports.");
-    if (!user || user.role !== Role.ADMIN) {
-      console.warn("📊 [AdminReportsPage] Utilisateur non administrateur ou non trouvé. Redirection.");
+     console.log("📊 [TeacherReportsPage] Le composant est monté. Vérification du rôle.");
+    if (!user || user.role !== Role.TEACHER) {
+       console.warn("📊 [TeacherReportsPage] Utilisateur non enseignant ou non trouvé. Redirection.");
       router.replace('/');
       return;
     }
-
-    async function fetchReports() {
-      console.log("📊 [AdminReportsPage] Début de la récupération des rapports via l'API.");
-      setLoading(true);
-      try {
-        const response = await fetch('/api/chatroom/reports');
-        if (response.ok) {
-          const data = await response.json();
-          setReports(data);
-          console.log(`📊 [AdminReportsPage] ${data.length} rapports récupérés avec succès.`);
-        } else {
-          console.error("📊 [AdminReportsPage] Échec de la récupération des rapports : la réponse n'est pas OK.", response.status);
-        }
-      } catch (error) {
-        console.error("📊 [AdminReportsPage] Erreur lors de la récupération des rapports:", error);
-      } finally {
-        setLoading(false);
-        console.log("📊 [AdminReportsPage] Fin du processus de récupération des rapports.");
-      }
-    }
-    
-    fetchReports();
-
   }, [user, router]);
 
-  if (!user || user.role !== Role.ADMIN) {
+  if (!user || user.role !== Role.TEACHER) {
     return <div>Accès non autorisé</div>;
   }
 
-  const totalSessions = reports.length;  
-  const activeSessions = reports.filter(s => s.status.toLowerCase() === 'active').length;
-  const completedSessions = reports.filter(s => s.status.toLowerCase() === 'ended').length;
-  const totalParticipants = reports.reduce((sum, s) => sum + s.participants.length, 0);
-  const averageSessionDuration = totalSessions > 0
-    ? reports.reduce((sum, s) => sum + s.duration, 0) / totalSessions
+  const totalSessions = sessions.length;
+  const activeSessions = sessions.filter((s: SessionReport) => s.status === 'active').length;
+  const completedSessions = sessions.filter((s: SessionReport) => s.status === 'completed').length;
+  const totalParticipants = sessions.reduce((sum: number, s: SessionReport) => sum + s.participants.length, 0);
+  const averageSessionDuration = totalSessions > 0 
+ ? sessions.reduce((sum, s: SessionReport) => sum + s.duration, 0) / totalSessions 
     : 0;
 
   const formatDuration = (seconds: number) => {
@@ -83,7 +78,7 @@ export default function AdminReportsPage() {
           <div className="flex items-center gap-4 mb-4">
             <Button
               variant="outline"
-              onClick={() => router.push('/admin')}
+              onClick={() => router.push('/list/chatroom/dashboard')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -93,9 +88,9 @@ export default function AdminReportsPage() {
           
           <div className="flex items-center gap-3 mb-2">
             <BarChart3 className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Rapports de Session (Admin)</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Rapports des Sessions</h1>
           </div>
-          <p className="text-gray-600">Vue d'ensemble de toutes les sessions de chatroom organisées par les professeurs.</p>
+          <p className="text-gray-600">Vue d'ensemble de toutes les sessions organisées</p>
         </div>
 
         {/* Statistics Cards */}
@@ -113,6 +108,7 @@ export default function AdminReportsPage() {
               </div>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Participants totaux</CardTitle>
@@ -125,6 +121,7 @@ export default function AdminReportsPage() {
               </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Durée moyenne</CardTitle>
@@ -137,7 +134,8 @@ export default function AdminReportsPage() {
               </p>
             </CardContent>
           </Card>
-           <Card>
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Engagement</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -158,28 +156,28 @@ export default function AdminReportsPage() {
           <CardHeader>
             <CardTitle>Historique des Sessions</CardTitle>
             <CardDescription>
-              Liste détaillée de toutes les sessions.
+              Liste détaillée de toutes les sessions organisées
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : reports.length === 0 ? (
+            ) : sessions.length === 0 ? (
               <div className="text-center py-8">
                 <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Aucun rapport de session disponible
+                  Aucune session trouvée
                 </h3>
                 <p className="text-gray-500">
-                  Les rapports des sessions créées par les professeurs apparaîtront ici.
+                  Les rapports des sessions apparaîtront ici une fois qu'elles seront créées.
                 </p>
               </div>
             ) : (
               <div className="grid gap-6">
-                {reports.map((session) => (
-                  <SessionReportCard key={session.id} session={session} />
+                {sessions.map((session) => (
+                  <SessionReportCard key={session.id} session={session as any} />
                 ))}
               </div>
             )}

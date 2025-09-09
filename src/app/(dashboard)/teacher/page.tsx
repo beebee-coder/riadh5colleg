@@ -1,36 +1,26 @@
+
 // src/app/(dashboard)/teacher/page.tsx
-import { getServerSession } from "@/lib/auth-utils";
+import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
-import { fetchAllDataForWizard } from "@/lib/data-fetching";
+import type { WizardData, ClassWithGrade, TeacherWithDetails, Subject, Classroom, Lesson } from '@/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import TimetableDisplay from "@/components/schedule/TimetableDisplay";
-import type { WizardData } from "@/types/index";
-import TeacherStatsCards from "@/components/teacher/TeacherStatsCards";
-import TeacherShortcuts from "@/components/teacher/TeacherShortcuts";
+import { notFound } from 'next/navigation';
+import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
 
-// Server component to fetch data and pass it to the client component
-export default async function TeacherPage() {
+const TeacherPage = async () => {
   console.log("🧑‍🏫 [TeacherPage] Rendu de la page d'accueil de l'enseignant. Vérification de la session.");
   const session = await getServerSession();
 
-  if (!session?.user?.id || session.user.role !== Role.TEACHER) {
-    console.warn("🧑‍🏫 [TeacherPage] Session invalide ou rôle incorrect. Redirection...");
-    redirect(session ? `/${(session.user.role as string).toLowerCase()}` : `/login`);
-    return null; // Stop rendering
+  if (!session || !session.user || session.user.role !== Role.TEACHER) { 
+     console.warn("🧑‍🏫 [TeacherPage] Session invalide ou rôle incorrect. Redirection...");
+     redirect(session ? `/${(session.user.role as string).toLowerCase()}` : `/login`);
   }
 
   const teacherFromDb = await prisma.teacher.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      _count: {
-        select: {
-          subjects: true,
-          lessons: true,
-        },
-      },
-    },
+      where: { userId: session.user.id },
   });
 
   if (!teacherFromDb) {
@@ -38,45 +28,40 @@ export default async function TeacherPage() {
     return (
       <div className="p-4 md:p-6 text-center">
         <Card className="inline-block p-8">
-          <CardHeader>
-            <CardTitle>Profil Enseignant Non Trouvé</CardTitle>
-            <CardDescription>
-              Aucun profil d'enseignant n'est associé à ce compte. Veuillez contacter l'administration.
-            </CardDescription>
-          </CardHeader>
+            <CardHeader>
+                <CardTitle>Profil Enseignant Non Trouvé</CardTitle>
+                <CardDescription>
+                  Aucun profil d'enseignant n'est associé à ce compte. Veuillez contacter l'administration.
+                </CardDescription>
+            </CardHeader>
         </Card>
       </div>
     );
   }
-
-  const wizardData: WizardData = await fetchAllDataForWizard();
+  
+  // --- REFACTORED DATA FETCHING ---
+  const wizardData = await fetchAllDataForWizard();
 
   console.log("🧑‍🏫 [TeacherPage] Rendu de l'emploi du temps.");
   return (
-    <div className="flex-1 p-4 flex flex-col gap-6">
-        <div className="flex flex-col xl:flex-row gap-6">
-            <div className="w-full xl:w-1/3">
-                <TeacherStatsCards stats={teacherFromDb._count} />
-            </div>
-            <div className="w-full xl:w-2/3">
-                <TeacherShortcuts teacherId={teacherFromDb.id} />
-            </div>
-        </div>
-        <Card>
-            <CardHeader>
-                <CardTitle>Mon Emploi du Temps</CardTitle>
-                <CardDescription>
-                    Votre emploi du temps personnel pour la semaine.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <TimetableDisplay
-                    wizardData={wizardData}
-                    viewMode={"teacher"}
-                    selectedViewId={teacherFromDb.id}
-                />
-            </CardContent>
-        </Card>
+    <div className="p-4 md:p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Mon Emploi du Temps Personnel</CardTitle>
+          <CardDescription>
+            Consultez votre emploi du temps par classe ou pour vous-même.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TimetableDisplay 
+            wizardData={wizardData} 
+            viewMode={"teacher"} 
+            selectedViewId={teacherFromDb.id} 
+          />
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default TeacherPage;

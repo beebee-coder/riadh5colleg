@@ -56,28 +56,29 @@ const rootReducer = combineReducers({
 });
 
 
-export const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ['session/startSession/fulfilled', 'session/startMeeting/fulfilled', 'session/fetchSessionState/fulfilled'],
-        // Ignore these field paths in all actions
-        ignoredActionPaths: ['meta.arg', 'payload.timestamp', 'meta.baseQueryMeta.request', 'meta.baseQueryMeta.response'],
-        // Ignore these paths in the state
-        ignoredPaths: ['session.activeSession'],
-      },
-    }).concat(
-      authApi.middleware,
-      entityApi.middleware,
-      draftApi.middleware
-    ),
-  devTools: process.env.NODE_ENV !== 'production',
-});
+export const makeStore = () => {
+    return configureStore({
+        reducer: rootReducer,
+        middleware: (getDefaultMiddleware) =>
+            getDefaultMiddleware({
+                serializableCheck: {
+                    ignoredActions: ['session/startSession/fulfilled', 'session/startMeeting/fulfilled', 'session/fetchSessionState/fulfilled'],
+                    ignoredActionPaths: ['meta.arg', 'payload.timestamp', 'meta.baseQueryMeta.request', 'meta.baseQueryMeta.response'],
+                    ignoredPaths: ['session.activeSession'],
+                },
+            }).concat(
+                authApi.middleware,
+                entityApi.middleware,
+                draftApi.middleware
+            ),
+        devTools: process.env.NODE_ENV !== 'production',
+    });
+};
+
+export const store = makeStore();
 
 setupListeners(store.dispatch);
 
+export type AppStore = ReturnType<typeof makeStore>;
 export type RootState = ReturnType<typeof rootReducer>;
-export type AppDispatch = typeof store.dispatch;
-export type AppStore = typeof store;
+export type AppDispatch = AppStore['dispatch'];
