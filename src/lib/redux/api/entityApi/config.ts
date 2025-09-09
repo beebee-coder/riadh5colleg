@@ -4,8 +4,9 @@ import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 export type EntityType = 'grade' | 'subject' | 'class' | 'teacher' | 'student' | 'parent' | 'lesson' | 'exam' | 'assignment' | 'event' | 'announcement' | 'result' | 'attendance' | 'quiz' | 'classroom';
 
 // Centralized base query to include credentials in every request
+// and use an absolute URL to avoid proxy issues in some environments.
 export const baseQueryWithCredentials = fetchBaseQuery({
-  baseUrl: '/',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   credentials: 'include',
 });
 

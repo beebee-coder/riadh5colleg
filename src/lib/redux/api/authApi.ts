@@ -49,7 +49,7 @@ export interface Verify2FARequest {
 
 export const authApi = createApi({
   reducerPath: 'authApi',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api/auth/' }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/` }),
   tagTypes: ['Session'],
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
