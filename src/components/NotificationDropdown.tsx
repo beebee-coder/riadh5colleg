@@ -1,7 +1,7 @@
 // src/components/NotificationDropdown.tsx
 'use client';
 
-import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { markAsRead, removeNotification, markAllAsRead, type AppNotification } from '@/lib/redux/slices/notificationSlice';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';

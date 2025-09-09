@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { cn } from '@/lib/utils';
 import { Loader2, ChevronLeft, ChevronRight, Sparkles, Info, CheckCircle, AlertTriangle, Calendar, Clock, Wand2, Download, Save, CloudOff, Edit, RotateCw, Printer, BookOpen, MapPin, Puzzle, School, Users, User as UserIcon } from 'lucide-react';
 

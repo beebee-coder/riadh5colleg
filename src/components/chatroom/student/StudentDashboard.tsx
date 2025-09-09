@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { useLogoutMutation } from '@/lib/redux/api/authApi';
 import { addNotification, removeNotification, type AppNotification } from '@/lib/redux/slices/notificationSlice';
 import { selectCurrentUser, selectIsAuthenticated } from '@/lib/redux/slices/authSlice';

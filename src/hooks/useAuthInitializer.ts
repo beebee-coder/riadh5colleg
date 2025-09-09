@@ -3,7 +3,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useGetSessionQuery } from '@/lib/redux/api/authApi';
-import { useAppDispatch } from './redux-hooks';
+import { useAppDispatch } from '@/lib/redux/hooks';
 import { setLoading } from '@/lib/redux/slices/authSlice';
 
 /**

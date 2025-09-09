@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Search, Hand } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { toggleStudentSelection } from '@/lib/redux/slices/sessionSlice';
 import type { ClassRoom, SessionParticipant } from '@/lib/redux/slices/session/types';
 import { ScrollArea } from '@/components/ui/scroll-area';

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { setSelectedClass, fetchChatroomClasses, startSession, updateStudentPresence, fetchSessionState, studentSignaledPresence } from "@/lib/redux/slices/sessionSlice";
 import type { ClassRoom } from '@/lib/redux/slices/session/types';
 import ClassCard from '@/components/chatroom/dashboard/ClassCard';

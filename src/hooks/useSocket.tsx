@@ -1,6 +1,6 @@
 // src/hooks/useSocket.tsx
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
-import { useAppDispatch, useAppSelector } from './redux-hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import { io, Socket } from 'socket.io-client';
 import { updateStudentPresence, studentSignaledPresence } from '@/lib/redux/slices/sessionSlice';
 import { addNotification } from '@/lib/redux/slices/notificationSlice';

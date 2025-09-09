@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux-hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks';
 import { useToast } from '@/hooks/use-toast';
 import {
     useGetAllDraftsQuery,
