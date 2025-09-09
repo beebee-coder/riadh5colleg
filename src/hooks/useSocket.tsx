@@ -34,14 +34,13 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         return; // Socket already initialized and connected
     }
     
-    // Dynamically set socket URL based on the window's origin
-    const socketUrl = window.location.origin;
-      
-    console.log(`🔌 [SocketProvider] Initializing socket connection to ${socketUrl} for user ${user.id}`);
+    // Connect to the custom server, assuming it runs on the same host/port as the Next.js app.
+    // In production, this would be your single production URL.
+    // In development, this connects to localhost:3000 where server.ts is running.
+    console.log(`🔌 [SocketProvider] Initializing socket connection to the custom server for user ${user.id}`);
 
-
-    socketRef.current = io(socketUrl, {
-      path: '/api/socket',
+    // The path is not needed anymore as we are connecting to the root server
+    socketRef.current = io({
       transports: ['websocket', 'polling'],
       auth: {
         userId: user.id,
