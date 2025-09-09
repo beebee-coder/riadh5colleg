@@ -13,7 +13,7 @@ import TemplateSelector from '@/components/chatroom/dashboard/TemplateSelector';
 import { selectCurrentUser } from '@/lib/redux/slices/authSlice';
 import { Role } from '@/types';
 import { Spinner } from '@/components/ui/spinner';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Video } from 'lucide-react';
 import { useSocket } from '@/hooks/useSocket';
