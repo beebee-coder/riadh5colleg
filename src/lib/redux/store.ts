@@ -13,19 +13,19 @@ import authReducer from './slices/authSlice';
 import sessionReducer from './slices/sessionSlice';
 import notificationReducer from './slices/notificationSlice';
 import reportReducer from './slices/reportSlice';
-import wizardReducer, { setInitialData } from './features/wizardSlice';
-import schoolConfigReducer, { setSchoolConfig } from './features/schoolConfigSlice';
-import classesReducer, { setAllClasses } from './features/classes/classesSlice';
-import subjectsReducer, { setAllSubjects } from './features/subjects/subjectsSlice';
-import teachersReducer, { setAllTeachers } from './features/teachers/teachersSlice';
-import studentsReducer, { setAllStudents } from './features/students/studentsSlice';
-import classroomsReducer, { setAllClassrooms } from './features/classrooms/classroomsSlice';
-import gradesReducer, { setAllGrades } from './features/grades/gradesSlice';
-import lessonRequirementsReducer, { setAllRequirements } from './features/lessonRequirements/lessonRequirementsSlice';
-import teacherConstraintsReducer, { setAllTeacherConstraints } from './features/teacherConstraintsSlice';
-import subjectRequirementsReducer, { setAllSubjectRequirements } from './features/subjectRequirementsSlice';
-import teacherAssignmentsReducer, { setAllTeacherAssignments } from './features/teacherAssignmentsSlice';
-import scheduleReducer, { setInitialSchedule } from './features/schedule/scheduleSlice';
+import wizardReducer from './features/wizardSlice';
+import schoolConfigReducer from './features/schoolConfigSlice';
+import classesReducer from './features/classes/classesSlice';
+import subjectsReducer from './features/subjects/subjectsSlice';
+import teachersReducer from './features/teachers/teachersSlice';
+import studentsReducer from './features/students/studentsSlice';
+import classroomsReducer from './features/classrooms/classroomsSlice';
+import gradesReducer from './features/grades/gradesSlice';
+import lessonRequirementsReducer from './features/lessonRequirements/lessonRequirementsSlice';
+import teacherConstraintsReducer from './features/teacherConstraintsSlice';
+import subjectRequirementsReducer from './features/subjectRequirementsSlice';
+import teacherAssignmentsReducer from './features/teacherAssignmentsSlice';
+import scheduleReducer from './features/schedule/scheduleSlice';
 import scheduleDraftReducer from './features/scheduleDraftSlice';
 import attendanceReducer from './features/attendance/attendanceSlice';
 
@@ -55,25 +55,6 @@ const rootReducer = combineReducers({
   [draftApi.reducerPath]: draftApi.reducer,
 });
 
-// Middleware to handle the setInitialData action for wizard hydration
-const hydrationMiddleware = (store: any) => (next: any) => (action: any) => {
-  if (action.type === setInitialData.type) {
-    const data = action.payload;
-    store.dispatch(setSchoolConfig(data.school));
-    store.dispatch(setAllClasses(data.classes));
-    store.dispatch(setAllSubjects(data.subjects));
-    store.dispatch(setAllTeachers(data.teachers));
-    store.dispatch(setAllStudents(data.students));
-    store.dispatch(setAllClassrooms(data.rooms));
-    store.dispatch(setAllGrades(data.grades));
-    store.dispatch(setAllRequirements(data.lessonRequirements));
-    store.dispatch(setAllTeacherConstraints(data.teacherConstraints));
-    store.dispatch(setAllSubjectRequirements(data.subjectRequirements));
-    store.dispatch(setAllTeacherAssignments(data.teacherAssignments));
-    store.dispatch(setInitialSchedule(data.schedule));
-  }
-  return next(action);
-};
 
 export const store = configureStore({
   reducer: rootReducer,
@@ -84,8 +65,7 @@ export const store = configureStore({
     }).concat(
       authApi.middleware,
       entityApi.middleware,
-      draftApi.middleware,
-      hydrationMiddleware
+      draftApi.middleware
     ),
   devTools: process.env.NODE_ENV !== 'production',
 });
