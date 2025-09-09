@@ -1,6 +1,5 @@
 // src/components/teacher/TeacherShortcuts.tsx
 import Link from "next/link";
-import type { TeacherWithDetails } from "@/types/index";
 import Performance from "../Performance";
 
 interface TeacherShortcutsProps {
@@ -9,37 +8,31 @@ interface TeacherShortcutsProps {
 
 export default function TeacherShortcuts({ teacherId }: TeacherShortcutsProps) {
   return (
-    <>
-      <div className="bg-white p-4 rounded-md">
-        <h1 className="text-xl font-semibold">Raccourcis</h1>
-        <div className="mt-4 flex gap-4 flex-wrap text-xs text-gray-500">
-          <Link
-            className="p-3 rounded-md bg-lamaPurpleLight shadow-sm hover:shadow-md hover:scale-105 transform transition-all duration-200 ease-out"
-            href={`/list/classes?teacherId=${teacherId}`}
-          >
-            Mes Classes
-          </Link>
-          <Link
-            className="p-3 rounded-md bg-lamaYellowLight shadow-sm hover:shadow-md hover:scale-105 transform transition-all duration-200 ease-out"
-            href={`/list/lessons?teacherId=${teacherId}`}
-          >
-            Mes Cours
-          </Link>
-          <Link
-            className="p-3 rounded-md bg-pink-50 shadow-sm hover:shadow-md hover:scale-105 transform transition-all duration-200 ease-out"
-            href={`/list/exams?teacherId=${teacherId}`}
-          >
-            Mes Examens
-          </Link>
-          <Link
-            className="p-3 rounded-md bg-lamaSkyLight shadow-sm hover:shadow-md hover:scale-105 transform transition-all duration-200 ease-out"
-            href={`/list/assignments?teacherId=${teacherId}`}
-          >
-            Mes Devoirs
-          </Link>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>Raccourcis</CardTitle>
+        <CardDescription>Accès rapide à vos pages les plus utilisées.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-4 flex-wrap">
+          <Button asChild variant="outline">
+            <Link href={`/list/classes?teacherId=${teacherId}`}>Mes Classes</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/list/lessons?teacherId=${teacherId}`}>Mes Cours</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/list/exams?teacherId=${teacherId}`}>Mes Examens</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={`/list/assignments?teacherId=${teacherId}`}>Mes Devoirs</Link>
+          </Button>
         </div>
-      </div>
-      <Performance title="Performance" />
-    </>
+      </CardContent>
+    </Card>
   );
 }
+
+// Keep Performance component import if needed elsewhere, or remove if fully obsolete
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";

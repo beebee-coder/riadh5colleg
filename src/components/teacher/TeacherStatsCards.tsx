@@ -1,6 +1,6 @@
-
 // src/components/teacher/TeacherStatsCards.tsx
 import { Book, GraduationCap, CalendarCheck } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TeacherStatsCardsProps {
   stats: {
@@ -9,34 +9,33 @@ interface TeacherStatsCardsProps {
   };
 }
 
+const StatCard = ({ icon: Icon, title, value, color }: { icon: React.ElementType, title: string, value: string | number, color: string }) => (
+    <Card className={`flex-1 min-w-[150px] shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${color}`}>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <Icon className="w-4 h-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+            <div className="text-2xl font-bold">{value}</div>
+        </CardContent>
+    </Card>
+);
+
 export default function TeacherStatsCards({ stats }: TeacherStatsCardsProps) {
   return (
-    <div className="flex-1 flex gap-4 justify-between flex-wrap">
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <Book className="w-6 h-6 text-primary"/>
-        <div>
-          <h1 className="text-xl font-semibold">
-            {stats.subjects}
-          </h1>
-          <span className="text-sm text-gray-400">Matières Enseignées</span>
-        </div>
-      </div>
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <GraduationCap className="w-6 h-6 text-primary"/>
-        <div>
-          <h1 className="text-xl font-semibold">
-            {stats.lessons}
-          </h1>
-          <span className="text-sm text-gray-400">Cours Donnés</span>
-        </div>
-      </div>
-      <div className="bg-card p-4 rounded-lg flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%] shadow-md hover:shadow-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:bg-muted/50">
-        <CalendarCheck className="w-6 h-6 text-primary"/>
-        <div>
-          <h1 className="text-xl font-semibold">N/A</h1>
-          <span className="text-sm text-gray-400">Présence (N/A)</span>
-        </div>
-      </div>
+    <div className="h-full flex flex-col sm:flex-row xl:flex-col gap-4">
+      <StatCard 
+        icon={Book}
+        title="Matières Enseignées" 
+        value={stats.subjects}
+        color="bg-sky-100/50 border-sky-200"
+      />
+      <StatCard 
+        icon={CalendarCheck} 
+        title="Cours par semaine" 
+        value={stats.lessons}
+        color="bg-green-100/50 border-green-200"
+      />
     </div>
   );
 }
