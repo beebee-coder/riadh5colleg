@@ -10,7 +10,7 @@ interface FormFieldsProps {
   errors: FieldErrors<EventSchema>;
   isLoading: boolean;
   availableClasses: { id: number; name: string }[];
-  initialData?: Event;
+  initialData?: Event | null;
 }
 
 const FormFields = ({ 
