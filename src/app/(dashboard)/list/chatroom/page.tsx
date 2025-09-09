@@ -3,8 +3,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/hooks/redux-hooks';
-import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/features/auth/authSlice';
+import { useAppSelector } from '@/lib/redux/hooks';
+import { selectCurrentUser, selectIsAuthenticated, selectIsAuthLoading } from '@/lib/redux/slices/authSlice';
 import { Spinner } from '@/components/ui/spinner';
 import { Role } from '@/types';
 
