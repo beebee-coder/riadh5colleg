@@ -1,8 +1,10 @@
+// src/components/AttendanceChartContainer.tsx
 import Image from "next/image";
 import AttendanceChart from "./AttendanceChart";
 import prisma from "@/lib/prisma";
 import type { Attendance } from "@/types/index"; // Import Attendance type
 import { daysOfWeek } from "@/lib/constants";
+import * as paths from '@/lib/image-paths'; // Import centralized paths
 
 // Specific type for the data fetched from Prisma
 type AttendanceData = Pick<Attendance, 'date' | 'present'>;
@@ -79,7 +81,7 @@ const AttendanceChartContainer = async () => {
     <div className="bg-muted p-4 rounded-lg h-full">
       <div className="flex justify-between items-center">
         <h1 className="text-lg font-semibold text-foreground">Présence</h1>
-        <Image src="/moreDark.png" alt="more options" width={20} height={20} />
+        <Image src={paths.moreDarkIcon} alt="more options" width={20} height={20} />
       </div>
       <AttendanceChart data={data}/>
     </div>
