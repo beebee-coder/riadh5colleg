@@ -131,6 +131,10 @@ export const useScheduleActions = (
 
     // This assertion guarantees classId is a number for the payload
     const finalClassId = classInfo.id; 
+    if (finalClassId === null) {
+      toast({ variant: "destructive", title: "ID de classe invalide", description: "Impossible d'ajouter le cours sans un ID de classe valide." });
+      return;
+    }
 
     // Explicitly type the payload to match what createLesson expects
     const newLessonPayload: Omit<Lesson, 'id' | 'createdAt' | 'updatedAt'> = {
@@ -151,7 +155,7 @@ export const useScheduleActions = (
       const tempId = -Date.now();
       dispatch(addLesson({ ...newLessonPayload, id: tempId, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }));
 
-      const createdLesson = await createLesson(newLessonPayload).unwrap();
+      const createdLesson = await createLesson(newLessonPayload as any).unwrap();
       // Replace temporary lesson with the real one from the server
       dispatch(updateLocalLesson({ tempId, updatedLesson: createdLesson as Lesson }));
       toast({ title: "Cours ajouté", description: `"${subjectInfo.name}" a été ajouté à l'emploi du temps.` });
