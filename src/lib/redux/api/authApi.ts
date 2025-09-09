@@ -3,6 +3,7 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { setUser, logout as logoutAction } from '../slices/authSlice';
 import type { SafeUser, Role } from '@/types/index';
 import { baseQueryWithCredentials } from './entityApi/config';
+import { getServerSession } from '@/lib/auth-utils';
 
 // --- Response Types ---
 export interface AuthResponse {
@@ -98,24 +99,16 @@ export const authApi = createApi({
       invalidatesTags: ['Session'],
     }),
     getSession: builder.query<SessionResponse, void>({
-      query: () => 'api/auth/session',
-      providesTags: (result) => (result ? [{ type: 'Session', id: 'CURRENT' }] : []),
-       async onQueryStarted(args, { dispatch, queryFulfilled }) {
-        console.log('📡 [AuthAPI] onQueryStarted pour getSession. En attente de la réponse...');
-        try {
-          const { data } = await queryFulfilled;
-          if (data?.user) {
-            console.log('✅ [AuthAPI] Session trouvée. Dispatch de setUser:', data.user);
-            dispatch(setUser(data.user));
-          } else {
-             console.log('🚫 [AuthAPI] Aucune session active. Dispatch de logoutAction.');
-             dispatch(logoutAction());
-          }
-        } catch (error) {
-          console.error('❌ [AuthAPI] Échec de la récupération de la session. Dispatch de logoutAction.', JSON.stringify(error));
-          dispatch(logoutAction());
-        }
-      },
+        queryFn: async () => {
+            // This is now a client-side query that uses the server action
+            try {
+                const session = await getServerSession();
+                return { data: { user: session?.user ?? null } };
+            } catch (error) {
+                return { error: { status: 'FETCH_ERROR', error: 'Failed to fetch session' } };
+            }
+        },
+        providesTags: (result) => (result?.data?.user ? [{ type: 'Session', id: 'CURRENT' }] : []),
     }),
     logout: builder.mutation<LogoutResponse, void>({
       query: () => ({

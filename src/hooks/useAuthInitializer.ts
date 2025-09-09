@@ -2,27 +2,41 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useGetSessionQuery } from '@/lib/redux/api/authApi';
 import { useAppDispatch } from '@/lib/redux/hooks';
-import { setLoading } from '@/lib/redux/slices/authSlice';
+import { setUser, logout, setLoading } from '@/lib/redux/slices/authSlice';
+import { getServerSession } from '@/lib/auth-utils';
 
 /**
- * Custom hook to initialize the user's auth state.
- * It ensures the session is fetched only once on initial load,
- * even in React's Strict Mode.
+ * Custom hook to initialize the user's auth state using a server action.
+ * It ensures the session is fetched only once on initial load.
  */
 export const useAuthInitializer = () => {
     const dispatch = useAppDispatch();
-    // Use a ref to track if the fetch has already been initiated.
     const hasFetched = useRef(false);
 
-    // Trigger the query, but the logic inside onQueryStarted in authApi
-    // will handle dispatching setUser or logout actions.
-    const { isLoading, isUninitialized } = useGetSessionQuery();
-    
-    // We only need to manually dispatch the loading state.
     useEffect(() => {
-        console.log(`⚛️ [useAuthInitializer] Auth loading state changed. isLoading: ${isLoading}, isUninitialized: ${isUninitialized}`);
-        dispatch(setLoading(isLoading || isUninitialized));
-    }, [isLoading, isUninitialized, dispatch]);
+        if (hasFetched.current) {
+            return;
+        }
+        hasFetched.current = true;
+        
+        const checkSession = async () => {
+            dispatch(setLoading(true));
+            try {
+                const session = await getServerSession();
+                if (session?.user) {
+                    dispatch(setUser(session.user));
+                } else {
+                    dispatch(logout());
+                }
+            } catch (error) {
+                console.error("Auth Initializer Error:", error);
+                dispatch(logout());
+            } finally {
+                dispatch(setLoading(false));
+            }
+        };
+
+        checkSession();
+    }, [dispatch]);
 };
