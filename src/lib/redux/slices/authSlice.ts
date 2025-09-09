@@ -22,7 +22,13 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<SafeUser>) => {
       console.log('🎬 [AuthSlice] Action setUser:', action.payload);
-      state.user = action.payload;
+      // Ensure date objects are serialized
+      const userPayload = action.payload;
+      state.user = {
+        ...userPayload,
+        createdAt: new Date(userPayload.createdAt).toISOString(),
+        updatedAt: new Date(userPayload.updatedAt).toISOString(),
+      } as SafeUser;
       state.isAuthenticated = true;
       state.isLoading = false;
       state.error = null;
