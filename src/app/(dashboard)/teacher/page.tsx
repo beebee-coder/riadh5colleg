@@ -1,4 +1,3 @@
-
 // src/app/(dashboard)/teacher/page.tsx
 import TimetableDisplay from "@/components/schedule/TimetableDisplay";
 import prisma from "@/lib/prisma";
@@ -8,7 +7,7 @@ import { Role } from "@prisma/client";
 import type { WizardData, ClassWithGrade, TeacherWithDetails, Subject, Classroom, Lesson } from '@/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { notFound } from 'next/navigation';
-import { fetchAllDataForWizard } from "@/lib/data-fetching/fetch-wizard-data";
+import { fetchAllDataForWizard } from "@/lib/data-fetching";
 
 const TeacherPage = async () => {
   console.log("🧑‍🏫 [TeacherPage] Rendu de la page d'accueil de l'enseignant. Vérification de la session.");
